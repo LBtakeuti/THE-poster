@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* デザイントークン（docs/06）。Tailwind の theme と二重管理になるが、
+   素の CSS からも参照できるよう CSS 変数として定義しておく。 */
+:root {
+  --ink: #171513;
+  --paper: #ffffff;
+  --hair: #e8e5df;
+  --line: #dcd8d0;
+  --muted: #9a948c;
+}
+
+html,
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 動きを減らす設定を尊重（3D の自動回転・浮遊は Phase 2 で個別対応）。 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

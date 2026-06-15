@@ -1,0 +1,452 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Yohaku — limited prints</title>
+<script src="https://js.stripe.com/v3/" onerror="window.__stripeFailed=true"></script>
+<style>
+  :root{ --ink:#171513; --paper:#fff; --hair:#e8e5df; --muted:#9a948c; --line:#dcd8d0; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", "Hiragino Kaku Gothic ProN", sans-serif;
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  #gl{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+  a{ color:inherit; }
+
+  header{ position:relative; z-index:10; display:flex; align-items:center; justify-content:space-between; padding:26px 32px 18px; }
+  .logo{ display:flex; align-items:baseline; gap:11px; cursor:pointer; }
+  .logo .mark{ width:13px; height:13px; border:1.6px solid var(--ink); transform:rotate(45deg); position:relative; top:1px; }
+  .logo .word{ font-weight:600; letter-spacing:.30em; font-size:14px; text-transform:uppercase; }
+  .hgroup{ display:flex; align-items:center; gap:20px; }
+  .meta{ font-size:11px; letter-spacing:.18em; color:var(--muted); text-transform:uppercase; }
+  .lang{ appearance:none; background:none; border:1px solid var(--hair); border-radius:999px; cursor:pointer; font:inherit;
+         font-size:11px; letter-spacing:.1em; color:var(--muted); padding:5px 12px; transition:color .2s, border-color .2s; }
+  .lang:hover{ color:var(--ink); border-color:var(--ink); }
+
+  /* ---------- shop grid ---------- */
+  .grid{ position:relative; z-index:1; display:grid; grid-template-columns:repeat(4,1fr); gap:8px 22px; padding:0 28px 80px; }
+  @media (max-width:820px){ .grid{ grid-template-columns:repeat(2,1fr); gap:6px 16px; padding:0 18px 64px; } header{ padding:20px 20px 14px; } }
+  .card{ display:flex; flex-direction:column; }
+  .viewer{ position:relative; width:100%; aspect-ratio:3 / 4; background:transparent; }
+  .hit{ position:absolute; inset:0; z-index:2; cursor:grab; touch-action:none; }
+  .hit:active{ cursor:grabbing; }
+  .caption{ padding:2px 4px 14px; }
+  .ptitle{ font-size:14px; letter-spacing:.02em; font-weight:600; }
+  .psub{ font-size:10px; letter-spacing:.18em; color:var(--muted); text-transform:uppercase; margin-top:5px; }
+  .row{ display:flex; align-items:center; justify-content:space-between; margin-top:11px; gap:10px; }
+  .stock{ font-size:11px; letter-spacing:.04em; color:#6b655c; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .stock b{ color:var(--ink); font-weight:600; }
+  .buy{ appearance:none; border:1px solid var(--ink); background:var(--ink); color:#fff; font:inherit; font-size:11px;
+        letter-spacing:.06em; font-weight:500; padding:8px 18px; border-radius:999px; cursor:pointer; white-space:nowrap;
+        transition:transform .14s ease, background .3s, color .3s, border-color .3s; }
+  .buy:hover{ transform:translateY(-1px); }
+  .buy:disabled{ background:transparent; color:var(--muted); border-color:var(--hair); cursor:not-allowed;
+        letter-spacing:.12em; text-transform:uppercase; font-size:10px; }
+  .bar{ width:100%; height:2px; background:var(--hair); border-radius:2px; overflow:hidden; margin-top:10px; }
+  .bar > i{ display:block; height:100%; background:var(--ink); transition:width .5s cubic-bezier(.22,1,.36,1); }
+
+  /* ---------- checkout ---------- */
+  #checkout{ display:none; position:relative; z-index:10; }
+  .back{ display:inline-flex; align-items:center; gap:8px; padding:4px 32px 0; font-size:12px; letter-spacing:.04em;
+         color:#6b655c; text-decoration:none; cursor:pointer; }
+  .back:hover{ color:var(--ink); }
+  .checkout-wrap{ max-width:980px; margin:0 auto; padding:18px 32px 90px; display:grid; grid-template-columns:1.15fr .85fr; gap:56px; }
+  @media (max-width:780px){ .checkout-wrap{ grid-template-columns:1fr; gap:36px; padding:18px 20px 80px; } }
+  .co-title{ font-size:24px; font-weight:600; letter-spacing:.01em; margin:6px 0 26px; }
+  .sect{ margin-bottom:30px; }
+  .sect h3{ font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); font-weight:600; margin:0 0 14px; }
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-size:11px; letter-spacing:.04em; color:#6b655c; margin-bottom:6px; }
+  .input{ width:100%; font:inherit; font-size:14px; color:var(--ink); background:#fff; border:1px solid var(--line);
+          border-radius:10px; padding:12px 13px; outline:none; transition:border-color .15s, box-shadow .15s; }
+  .input:focus{ border-color:var(--ink); box-shadow:0 0 0 3px rgba(23,21,19,.06); }
+  .three{ display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:12px; }
+  @media (max-width:480px){ .three{ grid-template-columns:1fr 1fr; } }
+
+  #payment-element{ border:1px solid var(--line); border-radius:10px; padding:14px; min-height:48px; }
+  .pe-fallback{ display:flex; flex-direction:column; gap:10px; }
+  .pe-line{ display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--hair); padding:10px 2px; color:var(--muted); font-size:13px; letter-spacing:.05em; }
+  .pe-line:last-child{ border-bottom:none; }
+  .pe-note{ font-size:10.5px; color:var(--muted); letter-spacing:.02em; margin-top:8px; line-height:1.5; }
+
+  .pay{ width:100%; appearance:none; border:none; background:var(--ink); color:#fff; font:inherit; font-size:14px;
+        font-weight:600; letter-spacing:.04em; padding:15px; border-radius:12px; cursor:pointer; margin-top:8px;
+        transition:transform .14s ease, opacity .2s; }
+  .pay:hover{ transform:translateY(-1px); }
+  .pay:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+  .secured{ text-align:center; font-size:10.5px; letter-spacing:.06em; color:var(--muted); margin-top:14px; }
+
+  .summary{ position:sticky; top:24px; align-self:start; border-left:1px solid var(--hair); padding-left:40px; }
+  @media (max-width:780px){ .summary{ border-left:none; padding-left:0; position:static; order:-1; border-bottom:1px solid var(--hair); padding-bottom:28px; } }
+  .sum-h{ font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); font-weight:600; margin:0 0 18px; }
+  .sum-item{ display:flex; gap:16px; align-items:flex-start; }
+  .sum-thumb{ width:84px; height:118px; object-fit:cover; border-radius:4px; box-shadow:0 6px 18px rgba(0,0,0,.08); flex:none; }
+  .sum-meta{ flex:1; }
+  .sum-meta .t{ font-size:14px; font-weight:600; }
+  .sum-meta .s{ font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-top:4px; }
+  .qty{ display:inline-flex; align-items:center; border:1px solid var(--line); border-radius:999px; margin-top:12px; }
+  .qty button{ width:30px; height:30px; border:none; background:none; font-size:16px; cursor:pointer; color:var(--ink); }
+  .qty button:disabled{ color:var(--hair); cursor:not-allowed; }
+  .qty span{ min-width:30px; text-align:center; font-size:13px; font-variant-numeric:tabular-nums; }
+  .qty-note{ font-size:10px; color:var(--muted); margin-top:6px; letter-spacing:.03em; }
+  .totals{ margin-top:26px; font-size:13px; }
+  .totals .l{ display:flex; justify-content:space-between; padding:7px 0; color:#6b655c; }
+  .totals .l.grand{ border-top:1px solid var(--hair); margin-top:6px; padding-top:14px; color:var(--ink); font-weight:600; font-size:16px; }
+
+  .confirm{ max-width:520px; margin:60px auto; text-align:center; padding:0 24px; }
+  .confirm .ok{ width:46px; height:46px; border:1.6px solid var(--ink); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 22px; font-size:20px; }
+  .confirm h2{ font-size:22px; font-weight:600; margin:0 0 12px; }
+  .confirm p{ color:#6b655c; font-size:13px; line-height:1.7; }
+  .confirm .oid{ font-family:ui-monospace, monospace; color:var(--ink); }
+</style>
+
+<canvas id="gl"></canvas>
+
+<div id="shop">
+  <header>
+    <div class="logo" onclick="goShop()"><span class="mark"></span><span class="word">Yohaku</span></div>
+    <div class="hgroup"><span class="meta" id="meta-shop"></span><button class="lang" id="lang-shop"></button></div>
+  </header>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div id="checkout">
+  <header>
+    <div class="logo" onclick="goShop()"><span class="mark"></span><span class="word">Yohaku</span></div>
+    <div class="hgroup"><span class="meta" id="meta-co"></span><button class="lang" id="lang-co"></button></div>
+  </header>
+  <a class="back" id="back-link" onclick="goShop()"></a>
+  <div id="checkout-body"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ===== PUT YOUR STRIPE TEST PUBLISHABLE KEY HERE to enable the real Payment Element =====
+  const STRIPE_PK = ''; // e.g. 'pk_test_xxx'  (leave empty to show the styled placeholder)
+
+  // ---------------- i18n ----------------
+  const I18N = {
+    en:{
+      metaShop:'Limited prints', metaCo:'Secure checkout', langBtn:'日本語',
+      left:(n,m)=>`${n} of ${m} left`, buy:'Buy', archived:'Archived', back:'\u2190 Back to shop',
+      checkout:'Checkout', contact:'Contact', email:'Email', emailPh:'you@example.com',
+      shipTo:'Shipping address', name:'Full name', namePh:'Jane Doe',
+      address:'Address', addrPh:'Street and number', addr2:'Apartment, suite, etc. (optional)',
+      city:'City', region:'State / Region', zip:'Postal code',
+      payment:'Payment', payBtn:t=>`Pay ${t}`, processing:'Processing\u2026',
+      secured:'\uD83D\uDD12 Payments are encrypted and processed securely by Stripe.',
+      peNote:'Preview placeholder. Add your Stripe test publishable key (STRIPE_PK) and run on your own site to load the live Payment Element here.',
+      orderSummary:'Order summary', remaining:(n,m)=>`${n} of ${m} remaining`,
+      subtotal:'Subtotal', shipping:'Shipping', total:'Total',
+      validate:'Please fill in your email, name, and address.', payErr:'Please check your payment details.',
+      thanks:'Thank you \u2014 your order is confirmed', orderLine:(o,q,ti)=>`Order ${o} \u00b7 ${q} \u00d7 ${ti}`,
+      confirmSub:'A receipt has been sent to your email. Your print ships within 3\u20135 business days.',
+      cont:'Continue shopping'
+    },
+    ja:{
+      metaShop:'\u9650\u5b9a\u30d7\u30ea\u30f3\u30c8', metaCo:'\u5b89\u5168\u306a\u304a\u652f\u6255\u3044', langBtn:'EN',
+      left:(n,m)=>`\u6b8b\u308a ${n} / ${m}`, buy:'\u8cfc\u5165', archived:'\u8ca9\u58f2\u7d42\u4e86', back:'\u2190 \u30b7\u30e7\u30c3\u30d7\u306b\u623b\u308b',
+      checkout:'\u3054\u8cfc\u5165\u624b\u7d9a\u304d', contact:'\u9023\u7d61\u5148', email:'\u30e1\u30fc\u30eb\u30a2\u30c9\u30ec\u30b9', emailPh:'you@example.com',
+      shipTo:'\u304a\u5c4a\u3051\u5148', name:'\u304a\u540d\u524d', namePh:'\u5c71\u7530 \u82b1\u5b50',
+      address:'\u4f4f\u6240', addrPh:'\u756a\u5730\u30fb\u5efa\u7269\u540d', addr2:'\u90e8\u5c4b\u756a\u53f7\u306a\u3069\uff08\u4efb\u610f\uff09',
+      city:'\u5e02\u533a\u753a\u6751', region:'\u90fd\u9053\u5e9c\u770c', zip:'\u90f5\u4fbf\u756a\u53f7',
+      payment:'\u304a\u652f\u6255\u3044', payBtn:t=>`${t} \u3092\u652f\u6255\u3046`, processing:'\u51e6\u7406\u4e2d\u2026',
+      secured:'\uD83D\uDD12 \u304a\u652f\u6255\u3044\u60c5\u5831\u306f\u6697\u53f7\u5316\u3055\u308c\u3001Stripe \u306b\u3088\u308a\u5b89\u5168\u306b\u51e6\u7406\u3055\u308c\u307e\u3059\u3002',
+      peNote:'\u3053\u308c\u306f\u30d7\u30ec\u30d3\u30e5\u30fc\u7528\u306e\u8868\u793a\u3067\u3059\u3002STRIPE_PK \u306b\u30c6\u30b9\u30c8\u7528\u306e publishable key \u3092\u8a2d\u5b9a\u3057\u3001\u3054\u81ea\u8eab\u306e\u30b5\u30a4\u30c8\u3067\u958b\u304f\u3068\u672c\u7269\u306e Stripe \u6c7a\u6e08\u6b04\u304c\u8868\u793a\u3055\u308c\u307e\u3059\u3002',
+      orderSummary:'\u3054\u6ce8\u6587\u5185\u5bb9', remaining:(n,m)=>`\u6b8b\u308a ${n} / ${m}`,
+      subtotal:'\u5c0f\u8a08', shipping:'\u9001\u6599', total:'\u5408\u8a08',
+      validate:'\u30e1\u30fc\u30eb\u30a2\u30c9\u30ec\u30b9\u30fb\u304a\u540d\u524d\u30fb\u4f4f\u6240\u3092\u3054\u5165\u529b\u304f\u3060\u3055\u3044\u3002', payErr:'\u304a\u652f\u6255\u3044\u60c5\u5831\u3092\u3054\u78ba\u8a8d\u304f\u3060\u3055\u3044\u3002',
+      thanks:'\u3054\u6ce8\u6587\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3059', orderLine:(o,q,ti)=>`\u6ce8\u6587\u756a\u53f7 ${o} \u00b7 ${ti} \u00d7 ${q}`,
+      confirmSub:'\u78ba\u8a8d\u30e1\u30fc\u30eb\u3092\u304a\u9001\u308a\u3057\u307e\u3057\u305f\u3002\u5546\u54c1\u306f3\u301c5\u55b6\u696d\u65e5\u4ee5\u5185\u306b\u767a\u9001\u3044\u305f\u3057\u307e\u3059\u3002',
+      cont:'\u8cb7\u3044\u7269\u3092\u7d9a\u3051\u308b'
+    }
+  };
+  let lang = (navigator.language||'en').toLowerCase().indexOf('ja')===0 ? 'ja' : 'en';
+  const t = k => I18N[lang][k];
+
+  const PRODUCTS = [
+    { title:'\u4f59\u767d \u2014 Morning Sun',    sub:'Riso \u00b7 A2', comp:'sun',    accent:'#d8442b', max:20, left:20, price:4800 },
+    { title:'\u9759\u5bc2 \u2014 Still Water',    sub:'Riso \u00b7 A2', comp:'lowsun',  accent:'#2f4d6e', max:20, left:13, price:4800 },
+    { title:'\u671d\u9727 \u2014 First Light',    sub:'Riso \u00b7 A2', comp:'arc',     accent:'#c98a2b', max:12, left:4,  price:5200 },
+    { title:'\u9060\u666f \u2014 Distant Hills',  sub:'Riso \u00b7 A2', comp:'hills',   accent:'#5d7d63', max:20, left:20, price:4800 },
+    { title:'\u4f59\u97fb \u2014 Afterglow',      sub:'Riso \u00b7 A2', comp:'sun',     accent:'#c25a3c', max:20, left:9,  price:4800 },
+    { title:'\u6f23 \u2014 Ripple',               sub:'Riso \u00b7 A2', comp:'hills',   accent:'#3a6b78', max:15, left:0,  price:5200 },
+    { title:'\u5c71\u5f71 \u2014 Mountain Shade', sub:'Riso \u00b7 A2', comp:'arc',     accent:'#7a5a86', max:20, left:20, price:4800 },
+    { title:'\u767d\u591c \u2014 White Night',    sub:'Riso \u00b7 A2', comp:'lowsun',  accent:'#445',    max:10, left:6,  price:5400 },
+  ];
+  const SHIPPING = 800;
+  const money = c => '$'+(c/100).toFixed(2);
+
+  // ---------- artwork ----------
+  function paintCanvas(p){
+    const W=560,H=792,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+    x.fillStyle='#ffffff';x.fillRect(0,0,W,H);
+    for(let i=0;i<1400;i++){x.fillStyle='rgba(0,0,0,'+(Math.random()*0.02)+')';x.fillRect(Math.random()*W,Math.random()*H,1,1);}
+    const m=54;
+    if(p.comp==='sun'){ x.fillStyle=p.accent;x.beginPath();x.arc(W*0.5,H*0.36,150,0,7);x.fill(); x.fillStyle='#171513';x.fillRect(m,H*0.37,W-2*m,4); }
+    else if(p.comp==='lowsun'){ x.fillStyle='#171513';x.fillRect(m,H*0.5,W-2*m,4); x.save();x.beginPath();x.rect(0,0,W,H*0.5);x.clip();x.fillStyle=p.accent;x.beginPath();x.arc(W*0.5,H*0.5,160,Math.PI,0);x.fill();x.restore(); }
+    else if(p.comp==='arc'){ x.strokeStyle=p.accent;x.lineWidth=18;x.beginPath();x.arc(W*0.5,H*0.62,150,Math.PI*1.15,Math.PI*1.85);x.stroke(); x.fillStyle='#171513';x.beginPath();x.arc(W*0.5,H*0.30,7,0,7);x.fill(); }
+    else { x.fillStyle=p.accent;x.fillRect(m,H*0.30,W-2*m,3); x.strokeStyle='#171513';x.lineWidth=3;
+      x.beginPath();x.moveTo(m,H*0.5);x.quadraticCurveTo(W*0.5,H*0.44,W-m,H*0.52);x.stroke();
+      x.beginPath();x.moveTo(m,H*0.58);x.quadraticCurveTo(W*0.42,H*0.53,W-m,H*0.6);x.stroke(); }
+    const jp=p.title.split(' \u2014 ')[0], en=(p.title.split(' \u2014 ')[1]||'').toUpperCase().split('').join(' ');
+    x.fillStyle='#171513';x.textAlign='left';x.font='600 72px Georgia,"Hiragino Mincho ProN",serif';x.fillText(jp,m,H*0.80);
+    x.font='400 16px ui-sans-serif,sans-serif';x.fillStyle='#5d574f';x.fillText(en,m+3,H*0.835);
+    x.font='400 14px ui-monospace,monospace';x.fillStyle='#171513';x.fillText('No.01',m,H*0.93);
+    x.textAlign='right';x.fillText('ed. '+p.max,W-m,H*0.93);
+    x.strokeStyle='rgba(23,21,19,0.22)';x.lineWidth=1.5;x.strokeRect(m*0.62,m*0.62,W-1.24*m,H-1.24*m);
+    return c;
+  }
+  function backCanvas(){
+    const W=560,H=792,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+    x.fillStyle='#ffffff';x.fillRect(0,0,W,H);
+    for(let i=0;i<1100;i++){x.fillStyle='rgba(0,0,0,'+(Math.random()*0.02)+')';x.fillRect(Math.random()*W,Math.random()*H,1,1);}
+    x.translate(W/2,H/2);x.textAlign='center';x.fillStyle='rgba(23,21,19,0.28)';x.font='600 26px ui-sans-serif,sans-serif';x.fillText('Y O H A K U',0,0);
+    return c;
+  }
+  function tex(canvas){ const tx=new THREE.CanvasTexture(canvas);tx.encoding=THREE.sRGBEncoding;tx.anisotropy=8;return tx; }
+  function softShadowTex(){
+    const W=256,H=362,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+    x.filter='blur(26px)';x.fillStyle='#000';const r=26,ix=46,iy=46,w=W-2*ix,h=H-2*iy;
+    x.beginPath();x.moveTo(ix+r,iy);x.arcTo(ix+w,iy,ix+w,iy+h,r);x.arcTo(ix+w,iy+h,ix,iy+h,r);x.arcTo(ix,iy+h,ix,iy,r);x.arcTo(ix,iy,ix+w,iy,r);x.closePath();x.fill();
+    const tx=new THREE.CanvasTexture(c);tx.minFilter=THREE.LinearFilter;return tx;
+  }
+
+  // ---------- three.js grid ----------
+  const canvas=document.getElementById('gl');
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.outputEncoding=THREE.sRGBEncoding;renderer.setClearColor(0xffffff,1);renderer.autoClear=false;
+  const scene=new THREE.Scene();
+  scene.add(new THREE.HemisphereLight(0xffffff,0xededee,0.75));
+  const key=new THREE.DirectionalLight(0xffffff,1.0);key.position.set(-2.4,3.0,3.2);scene.add(key);
+  const fill=new THREE.DirectionalLight(0xffffff,0.25);fill.position.set(3,1,2);scene.add(fill);
+  const camera=new THREE.PerspectiveCamera(40,0.75,0.1,100);camera.position.set(0,0,5.0);
+  const PW=2.0,PH=PW*1.414,PD=0.012;
+  const geo=new THREE.BoxGeometry(PW,PH,PD);
+  const shadowGeo=new THREE.PlaneGeometry(PW*1.35,PH*1.18);const shadowTexture=softShadowTex();
+
+  const items=PRODUCTS.map(p=>{
+    const pc=paintCanvas(p);
+    const front=new THREE.MeshStandardMaterial({map:tex(pc),roughness:0.82,metalness:0,transparent:true,opacity:1});
+    const back=new THREE.MeshStandardMaterial({map:tex(backCanvas()),roughness:0.9,metalness:0,transparent:true,opacity:1});
+    const edge=new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.95,metalness:0,transparent:true,opacity:1});
+    const mesh=new THREE.Mesh(geo,[edge,edge,edge,edge,front,back]);
+    const pivot=new THREE.Group();pivot.add(mesh);
+    const shadow=new THREE.Mesh(shadowGeo,new THREE.MeshBasicMaterial({map:shadowTexture,transparent:true,opacity:0.16,color:0,depthWrite:false}));
+    shadow.position.set(0.14,-0.10,-0.25);
+    const holder=new THREE.Group();holder.add(shadow);holder.add(pivot);holder.visible=false;scene.add(holder);
+    return { p, thumb:pc.toDataURL('image/jpeg',0.9), holder, pivot, shadow, mats:[front,back,edge],
+      rotY:-0.3, rotX:0.06, velY:0, velX:0, idle:Math.random()*1500, sold:p.left<=0, phase:Math.random()*6 };
+  });
+
+  // ---------- shop DOM ----------
+  const grid=document.getElementById('grid');
+  items.forEach((it,i)=>{
+    const card=document.createElement('div');card.className='card';
+    card.innerHTML=
+      '<div class="viewer"><div class="hit" data-i="'+i+'"></div></div>'+
+      '<div class="caption">'+
+        '<div class="ptitle">'+it.p.title+'</div>'+
+        '<div class="psub">'+it.p.sub+' \u00b7 '+money(it.p.price)+'</div>'+
+        '<div class="row"><span class="stock"></span><button class="buy"></button></div>'+
+        '<div class="bar"><i style="width:'+(it.p.left/it.p.max*100)+'%"></i></div>'+
+      '</div>';
+    grid.appendChild(card);
+    it.viewer=card.querySelector('.viewer');
+    it.stockEl=card.querySelector('.stock');
+    it.buyEl=card.querySelector('.buy');
+    it.fillEl=card.querySelector('.bar > i');
+    syncCard(it);
+    it.buyEl.addEventListener('click',()=>openCheckout(it));
+  });
+  function syncCard(it){
+    it.fillEl.style.width=(it.p.left/it.p.max*100)+'%';
+    if(it.p.left<=0){ it.sold=true; it.buyEl.disabled=true; it.buyEl.textContent=t('archived'); }
+    else{ it.sold=false; it.buyEl.disabled=false; it.buyEl.textContent=t('buy'); }
+    // stock text with the number bolded, in either language
+    it.stockEl.textContent='';
+    const n=String(it.p.left), full=t('left')(it.p.left,it.p.max), parts=full.split(n);
+    const b=document.createElement('b'); b.textContent=n;
+    it.stockEl.append(parts[0]||''); it.stockEl.append(b); it.stockEl.append(parts.slice(1).join(n));
+  }
+
+  // ---------- drag ----------
+  let active=null,lastX=0,lastY=0;
+  grid.addEventListener('pointerdown',e=>{const hit=e.target.closest('.hit');if(!hit)return;active=items[+hit.dataset.i];lastX=e.clientX;lastY=e.clientY;active.velY=active.velX=0;active.idle=0;hit.setPointerCapture(e.pointerId);});
+  grid.addEventListener('pointermove',e=>{if(!active)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;active.rotY+=dx*0.01;active.rotX=Math.max(-0.7,Math.min(0.7,active.rotX+dy*0.01));active.velY=dx*0.01;active.velX=dy*0.01;active.idle=0;});
+  grid.addEventListener('pointerup',()=>active=null);
+  grid.addEventListener('pointercancel',()=>active=null);
+
+  // ---------- render loop ----------
+  const clock=new THREE.Clock();
+  function frame(){
+    requestAnimationFrame(frame);
+    const dt=Math.min(clock.getDelta(),0.05),tt=clock.elapsedTime;
+    const w=window.innerWidth,h=window.innerHeight;
+    renderer.setScissorTest(false);renderer.clear();
+    if(document.getElementById('shop').style.display==='none') return;
+    for(const it of items){
+      if(it!==active){ it.idle+=dt*1000; it.rotY+=it.velY;it.rotX+=it.velX; it.velY*=0.94;it.velX*=0.90;
+        it.rotX=Math.max(-0.7,Math.min(0.7,it.rotX)); it.rotX+=(0.06-it.rotX)*0.012;
+        if(it.idle>2400&&!reduce&&!it.sold) it.velY+=(0.0026-it.velY)*0.04; }
+      it.pivot.rotation.y=it.rotY;it.pivot.rotation.x=it.rotX;
+      if(!reduce&&!it.sold){ it.holder.position.y=Math.sin(tt*0.85+it.phase)*0.04; it.pivot.rotation.z=Math.sin(tt*0.6+it.phase)*0.012; }
+      else { it.holder.position.y=0; it.pivot.rotation.z=0; }
+      const face=Math.abs(Math.cos(it.rotY));
+      it.shadow.scale.x=0.18+0.82*face; it.shadow.material.opacity=(it.sold?0.08:0.16)*(0.45+0.55*face);
+      const target=it.sold?0.5:1.0; it.mats.forEach(m=>m.opacity+=(target-m.opacity)*0.06);
+      const r=it.viewer.getBoundingClientRect();
+      if(r.bottom<0||r.top>h||r.width===0) continue;
+      camera.aspect=r.width/r.height;camera.updateProjectionMatrix();
+      it.holder.visible=true;
+      renderer.setViewport(r.left,h-r.bottom,r.width,r.height);
+      renderer.setScissor(r.left,h-r.bottom,r.width,r.height);
+      renderer.setScissorTest(true);renderer.render(scene,camera);
+      it.holder.visible=false;
+    }
+  }
+  renderer.setSize(window.innerWidth,window.innerHeight,false);frame();
+  window.addEventListener('resize',()=>renderer.setSize(window.innerWidth,window.innerHeight,false));
+
+  // ---------- checkout ----------
+  const stripe = (STRIPE_PK && window.Stripe && !window.__stripeFailed) ? Stripe(STRIPE_PK) : null;
+  let elements=null, curItem=null, curQty=1, coView='form', confirmData=null;
+
+  function openCheckout(it){
+    curItem=it; curQty=1; coView='form';
+    document.getElementById('shop').style.display='none';
+    document.getElementById('checkout').style.display='block';
+    window.scrollTo(0,0);
+    renderCheckout();
+  }
+  window.goShop=function(){
+    document.getElementById('checkout').style.display='none';
+    document.getElementById('shop').style.display='block';
+    elements=null; coView='form';
+  };
+
+  function totals(){ const sub=curItem.p.price*curQty; return { sub, ship:SHIPPING, total:sub+SHIPPING }; }
+
+  function renderCheckout(){
+    coView='form';
+    const p=curItem.p, tt=totals();
+    document.getElementById('checkout-body').innerHTML=
+      '<div class="checkout-wrap"><div class="form-col">'+
+        '<div class="co-title">'+t('checkout')+'</div>'+
+        '<div class="sect"><h3>'+t('contact')+'</h3>'+
+          '<div class="field"><label>'+t('email')+'</label><input class="input" id="f-email" type="email" placeholder="'+t('emailPh')+'" autocomplete="email"></div></div>'+
+        '<div class="sect"><h3>'+t('shipTo')+'</h3>'+
+          '<div class="field"><label>'+t('name')+'</label><input class="input" id="f-name" placeholder="'+t('namePh')+'" autocomplete="name"></div>'+
+          '<div class="field"><label>'+t('address')+'</label><input class="input" id="f-addr" placeholder="'+t('addrPh')+'" autocomplete="address-line1"></div>'+
+          '<div class="field"><label>'+t('addr2')+'</label><input class="input" id="f-addr2" autocomplete="address-line2"></div>'+
+          '<div class="three">'+
+            '<div class="field"><label>'+t('city')+'</label><input class="input" id="f-city" autocomplete="address-level2"></div>'+
+            '<div class="field"><label>'+t('region')+'</label><input class="input" id="f-state" autocomplete="address-level1"></div>'+
+            '<div class="field"><label>'+t('zip')+'</label><input class="input" id="f-zip" autocomplete="postal-code"></div>'+
+          '</div></div>'+
+        '<div class="sect"><h3>'+t('payment')+'</h3><div id="payment-element"></div><p class="pe-note" id="pe-note"></p></div>'+
+        '<button class="pay" id="pay-btn">'+t('payBtn')(money(tt.total))+'</button>'+
+        '<div class="secured">'+t('secured')+'</div>'+
+      '</div>'+
+      '<div class="summary"><h3 class="sum-h">'+t('orderSummary')+'</h3>'+
+        '<div class="sum-item"><img class="sum-thumb" src="'+curItem.thumb+'" alt="">'+
+          '<div class="sum-meta"><div class="t">'+p.title+'</div><div class="s">'+p.sub+' \u00b7 ed. '+p.max+'</div>'+
+            '<div class="qty"><button id="q-minus">\u2212</button><span id="q-val">'+curQty+'</span><button id="q-plus">+</button></div>'+
+            '<div class="qty-note" id="q-note">'+t('remaining')(p.left,p.max)+'</div>'+
+          '</div></div>'+
+        '<div class="totals"><div class="l"><span>'+t('subtotal')+'</span><span id="t-sub">'+money(tt.sub)+'</span></div>'+
+          '<div class="l"><span>'+t('shipping')+'</span><span>'+money(tt.ship)+'</span></div>'+
+          '<div class="l grand"><span>'+t('total')+'</span><span id="t-total">'+money(tt.total)+'</span></div></div>'+
+      '</div></div>';
+    document.getElementById('q-minus').onclick=()=>{ if(curQty>1){curQty--;updateTotals();} };
+    document.getElementById('q-plus').onclick=()=>{ if(curQty<p.left){curQty++;updateTotals();} };
+    document.getElementById('pay-btn').onclick=pay;
+    updateTotals();
+    mountPayment(totals().total);
+  }
+  function updateTotals(){
+    const tt=totals();
+    document.getElementById('q-val').textContent=curQty;
+    document.getElementById('q-minus').disabled=curQty<=1;
+    document.getElementById('q-plus').disabled=curQty>=curItem.p.left;
+    document.getElementById('t-sub').textContent=money(tt.sub);
+    document.getElementById('t-total').textContent=money(tt.total);
+    document.getElementById('pay-btn').textContent=t('payBtn')(money(tt.total));
+    if(elements && elements.update){ elements.update({amount:tt.total}); }
+  }
+  function mountPayment(amount){
+    const host=document.getElementById('payment-element');
+    const note=document.getElementById('pe-note');
+    if(stripe){
+      try{
+        elements=stripe.elements({ mode:'payment', amount, currency:'usd',
+          appearance:{ theme:'flat', variables:{ colorPrimary:'#171513', colorText:'#171513',
+            colorBackground:'#ffffff', fontFamily:'ui-sans-serif, system-ui, sans-serif', borderRadius:'8px' } } });
+        elements.create('payment').mount(host); note.textContent=''; return;
+      }catch(e){}
+    }
+    host.innerHTML='<div class="pe-fallback">'+
+      '<div class="pe-line"><span>Card number</span><span>\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022</span></div>'+
+      '<div class="pe-line"><span>Expiry</span><span>MM / YY</span></div>'+
+      '<div class="pe-line"><span>CVC</span><span>\u2022\u2022\u2022</span></div></div>';
+    note.textContent=t('peNote');
+  }
+  async function pay(){
+    const email=(document.getElementById('f-email')||{}).value||'';
+    const name=(document.getElementById('f-name')||{}).value||'';
+    const addr=(document.getElementById('f-addr')||{}).value||'';
+    if(!email.includes('@')||!name||!addr){ alert(t('validate')); return; }
+    const btn=document.getElementById('pay-btn'); btn.disabled=true; btn.textContent=t('processing');
+    if(stripe && elements){
+      const {error}=await elements.submit();
+      if(error){ btn.disabled=false; btn.textContent=t('payBtn')(money(totals().total));
+        document.getElementById('pe-note').textContent=error.message||t('payErr'); return; }
+      // PRODUCTION: create PaymentIntent on server -> clientSecret ->
+      //   await stripe.confirmPayment({ elements, clientSecret, confirmParams:{ return_url } });
+    }
+    setTimeout(showConfirmed,500);
+  }
+  function showConfirmed(){
+    curItem.p.left=Math.max(0,curItem.p.left-curQty);
+    syncCard(curItem);
+    const oid='YHK-'+Math.random().toString(36).slice(2,8).toUpperCase();
+    confirmData={ oid, qty:curQty, title:curItem.p.title };
+    renderConfirm();
+  }
+  function renderConfirm(){
+    coView='confirm';
+    const d=confirmData;
+    document.getElementById('checkout-body').innerHTML=
+      '<div class="confirm"><div class="ok">\u2713</div>'+
+      '<h2>'+t('thanks')+'</h2>'+
+      '<p>'+t('orderLine')('<span class="oid">'+d.oid+'</span>',d.qty,d.title)+'<br>'+t('confirmSub')+'</p>'+
+      '<button class="buy" style="margin-top:24px" onclick="goShop()">'+t('cont')+'</button></div>';
+  }
+
+  // ---------- language ----------
+  function applyStatic(){
+    document.getElementById('meta-shop').textContent=t('metaShop');
+    document.getElementById('meta-co').textContent=t('metaCo');
+    document.getElementById('lang-shop').textContent=t('langBtn');
+    document.getElementById('lang-co').textContent=t('langBtn');
+    document.getElementById('back-link').textContent=t('back');
+    document.documentElement.lang=lang;
+  }
+  function setLang(l){
+    lang=l; applyStatic(); items.forEach(syncCard);
+    if(document.getElementById('checkout').style.display==='block'){
+      if(coView==='confirm') renderConfirm(); else renderCheckout();
+    }
+  }
+  document.getElementById('lang-shop').onclick=()=>setLang(lang==='en'?'ja':'en');
+  document.getElementById('lang-co').onclick=()=>setLang(lang==='en'?'ja':'en');
+  applyStatic();
+
+  window.openCheckout=openCheckout;
+})();
+</script>
