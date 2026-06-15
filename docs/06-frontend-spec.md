@@ -1,6 +1,7 @@
 # 06 — フロントエンド仕様
 
 見た目・操作感の正は `reference/poster-store-prototype.html`。これを Next.js + React Three Fiber に移植する。
+※試作内のロゴは旧名のため、ロゴだけは公式 SVG ワードマーク（`docs/assets/logo.svg` → `public/logo.svg`）に置き換える。
 
 ## デザイントークン
 
@@ -14,12 +15,19 @@
 
 - フォント: 本文は system-ui 系サンセリフ。ポスター内の作品名（日本語）だけ明朝（Georgia / Hiragino Mincho 系）。
 - 余白を広く、装飾は足さない。角丸はボタン・入力欄のみ。
-- ロゴ: 13px のひし形（border 1.6px）+ "Yohaku"（letter-spacing 0.30em, uppercase）。
+
+## ロゴ
+
+- 公式 SVG ワードマーク「THE POSTER」を使う：`docs/assets/logo.svg`（viewBox `0 0 243.9 26.9`、色 `#231815`）。
+- scaffold 時に `public/logo.svg` へコピーし、ヘッダーで `<img src="/logo.svg" alt="THE POSTER">` か `next/image` で表示。
+- 高さ基準で配置（例: ヘッダー内で高さ 14〜18px 程度、横幅は比率維持）。クリックでトップへ。
+- 旧仕様の「ひし形マーク + テキスト」ロゴは廃止。テキストでロゴを手書きしない。
+- 色は SVG 既定（`#231815`）のまま。背景は純白なので視認性は十分。必要時のみ `fill: var(--ink)` 相当に寄せてよい。
 
 ## 画面
 
 ### ストア `/`
-- ヘッダー: ロゴ（クリックでトップ）/ 右に「Limited prints」表記 + 言語トグル。
+- ヘッダー: ロゴ（SVG ワードマーク。クリックでトップ）/ 右に「Limited prints」表記 + 言語トグル。
 - グリッド: `grid-template-columns: repeat(4,1fr)`、`max-width: 820px` 以下で `repeat(2,1fr)`。
 - 各カード: 上に回る 3D ポスター（縦長 3:4 の枠）、下に 作品名 / `sub · 価格` / 「残り N / M」/「Buy」/ 残量バー。
 - 在庫 0 は Buy を無効化し "Archived"、ポスターを少し褪せさせる。

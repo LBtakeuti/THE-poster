@@ -1,5 +1,5 @@
 -- ============================================================
---  Yohaku — initial schema
+--  the poster — initial schema
 --  Run in the Supabase SQL editor, or via the Supabase CLI:
 --    supabase db push   (after placing this file under supabase/migrations/)
 -- ============================================================

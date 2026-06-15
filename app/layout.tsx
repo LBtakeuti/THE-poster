@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/i18n/dictionary";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Yohaku",
+  title: "THE POSTER",
   description: "Limited art prints.",
 };
 

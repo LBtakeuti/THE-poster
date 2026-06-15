@@ -1,5 +1,5 @@
 -- ============================================================
---  Yohaku — optional seed data (matches the 8 posters in the prototype)
+--  the poster — optional seed data (matches the 8 posters in the prototype)
 --  Images are not seeded; upload them later from the admin panel and
 --  set image_path. These start as 'active' so the storefront isn't empty.
 -- ============================================================

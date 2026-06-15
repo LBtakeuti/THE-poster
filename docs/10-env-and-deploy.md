@@ -48,3 +48,4 @@
 - [ ] service role / secret がクライアントバンドルに出ていない
 - [ ] 日英トグルが全画面で機能、Payment Element のロケールも一致
 - [ ] スマホ 2 列 / PC 4 列、3D が崩れない、reduced-motion で動きが止まる
+- [ ] ロゴが公式 SVG ワードマーク（THE POSTER）で表示されている
