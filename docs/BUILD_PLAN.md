@@ -25,7 +25,7 @@ Stripe(Payment Element+Webhook) / React Three Fiber + drei。
 - Next.js scaffold / デザイントークン / lib骨格 / i18n辞書 / migration配置 / .env.local.example。
 - ※旧名「Yohaku」で構築済み。名称・ロゴは Phase 1.5 で差し替える。
 
-### Phase 1.5 — 名称・ロゴ差し替え（★今ここ）
+### Phase 1.5 — 名称・ロゴ差し替え（✅ 完了：commit 8c44c66）
 - コード内の「Yohaku/yohaku」を「the poster / THE POSTER」へ差し替え（下記5箇所）：
   - `app/page.tsx`（ヘッダーのロゴ表記 → SVGワードマーク表示に変更）
   - `app/layout.tsx`（metadata title）
@@ -37,9 +37,16 @@ Stripe(Payment Element+Webhook) / React Three Fiber + drei。
 - リードが書き直した仕様書（README/CLAUDE.md/docs/01〜10/assets）も同じコミットに含める。
 - `npm run build` 通過が完了基準。.tsx 変更ありのため design-mate を通す。
 
-### Phase 2 — ストアページ `/`
+### Phase 2 — ストアページ `/`（✅ 完了：commit a0e1976）
 - products(active/archived, sort_order順)をサーバーコンポーネントで取得。
 - グリッド(PC4列/スマホ2列)、回る3Dポスター(R3F)、言語トグル、残量バー、在庫0=Archived。
+- ※Supabase未接続のためサンプルでフォールバック描画。実フェッチ経路は実装済み。
+- ユニットテスト(products-shared派生ロジック/i18n)実施。E2E/スモークはSupabase接続後に実施。
+
+## 順序変更（keitakeuchi 判断 2026-06-15）
+- 決済(Stripe)を後回しにし、先に **管理画面(Phase 4)** を実装する。
+- 以降の順序: Phase 4（管理画面）→ Phase 3（チェックアウト）→ Phase 5（デプロイ）。
+- 管理画面のUI/コードは Supabase 未接続でも実装・ビルド可能。ただし実ログイン・実CRUDの動作確認には Supabase 接続が必要（接続後に通しテスト）。
 
 ### Phase 3 — チェックアウト
 - `/checkout`(2カラム)+Payment Element、`POST /api/create-payment-intent`、

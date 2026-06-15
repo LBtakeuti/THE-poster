@@ -16,6 +16,8 @@ const config: Config = {
         hair: "#e8e5df", // 極薄の区切り線
         line: "#dcd8d0", // 入力欄の枠
         muted: "#9a948c", // 補助テキスト
+        subtle: "#6b655c", // 読ませる二次テキスト（muted より濃い。試作 .stock/.field label 由来）
+        danger: "#b3402b", // エラー/必須/破壊操作の意味色。/admin/* 限定（docs/06）。公開ページでは使わない。
       },
       fontFamily: {
         // 本文は system-ui 系サンセリフ。

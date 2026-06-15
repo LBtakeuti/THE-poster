@@ -61,7 +61,7 @@ export function StoreGrid({ products, imageUrls }: StoreGridProps) {
                   Riso · A2 · {money(p.price_cents, locale, p.currency)}
                 </div>
                 <div className="mt-[11px] flex items-center justify-between gap-[10px]">
-                  <span className="whitespace-nowrap text-[11px] tabular-nums tracking-[0.04em] text-[#6b655c]">
+                  <span className="whitespace-nowrap text-[11px] tabular-nums tracking-[0.04em] text-subtle">
                     {renderStock(t.stockLeft(left, p.edition_size), left)}
                   </span>
                   <button
