@@ -39,6 +39,13 @@
 
 > お名前.com 側の画面文言は時期により変わる。上記で詰まったら「お名前.com 独自ドメイン Vercel DNS 設定」で最新手順を確認するとよい。
 
+## 既知の警告（対処不要）
+
+- ビルド時に middleware で **Edge Runtime 警告**（`process.version` 参照等）が出ることがある。
+  これは `@supabase/ssr` 公式の middleware パターン由来の **既知・無害** な警告で、ビルドは成功し動作にも影響しない。
+  middleware を `runtime='nodejs'` 等に変更しない（公式パターンを崩す方がリスク）。
+  将来 Vercel 本番で実害が出た場合のみ再検討する。
+
 ## 公開前チェックリスト
 
 - [ ] Stripe を本番キーに切り替え、本番 webhook が `paid` まで通る
