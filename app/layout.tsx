@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
-import { I18nProvider, resolveLocaleFromAcceptLanguage } from "@/lib/i18n/context";
+import { I18nProvider } from "@/lib/i18n/context";
+import { resolveLocaleFromAcceptLanguage } from "@/lib/i18n/locale";
 import type { Locale } from "@/lib/i18n/dictionary";
 import "./globals.css";
 

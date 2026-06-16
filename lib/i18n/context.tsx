@@ -73,12 +73,7 @@ export function useI18n(): I18nContextValue {
   return ctx;
 }
 
-/** Accept-Language から初期ロケールを判定（'ja' 始まりなら ja、他は en）。 */
-export function resolveLocaleFromAcceptLanguage(
-  acceptLanguage: string | null | undefined,
-): Locale {
-  if (acceptLanguage && acceptLanguage.toLowerCase().startsWith("ja")) {
-    return "ja";
-  }
-  return "en";
-}
+// ロケール判定の純関数はサーバー安全な lib/i18n/locale.ts に移設した
+// （Server Component から "use client" モジュールの関数を呼べず実行時500になるため）。
+// 後方互換のため re-export する（既存の import 経路を壊さない）。
+export { resolveLocaleFromAcceptLanguage } from "./locale";
