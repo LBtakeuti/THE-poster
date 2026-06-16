@@ -24,12 +24,16 @@ body {
 }
 
 /* ストアの scattered（段違い）レイアウト（docs/06）。
-   デスクトップ（821px 以上）のみ各カードに決め打ちの縦オフセットを与える。
-   モバイル（820px 以下）は従来どおり整然 2 列のため一切オフセットしない。
-   並び順（DOM/sort_order/キーボード順）は崩さず、margin-top で見た目だけ散らす。 */
+   デスクトップ（821px 以上）のみ各カードに決め打ちの縦オフセット＋大小スケールを与える。
+   モバイル（820px 以下）は従来どおり整然 2 列のため一切散らさない（オフセット/スケールなし）。
+   並び順（DOM/sort_order/キーボード順）は崩さず、見た目だけ散らす。 */
 @media (min-width: 821px) {
   .scatter-card {
     margin-top: var(--scatter-offset, 0px);
+    /* 大小の変化。transform はレイアウトを変えないため横はみ出し・カード重なりを起こさない。
+       origin を上中央にして列内での中心を保つ。 */
+    transform: scale(var(--scatter-scale, 1));
+    transform-origin: top center;
   }
 }
 

@@ -13,9 +13,16 @@ import { money } from "@/lib/format";
 import { isPurchasable, remaining, type Product } from "@/lib/products-shared";
 import { SAMPLE_EXTRAS } from "@/lib/sample-products";
 
-// scattered（段違い）用の決め打ち縦オフセット(px)。デスクトップ限定で適用（docs/06）。
-// 長さ7は列数4と互いに素 → 列ごとに同じ段差が並ばず自然に散る。再読込しても安定。
-const SCATTER_OFFSETS = [0, 48, 18, 66, 30, 8, 54];
+// scattered（段違い）用の決め打ちパラメータ。デスクトップ限定で適用（docs/06）。
+// すべて決め打ち＝再読込で安定（ランダム禁止）。並び順・DOM・キーボード順は不変。
+//
+// 縦オフセット(px): 0〜約200の不規則値。長さ7は列数4と互いに素 → 列ごとに段差が揃わない。
+const SCATTER_OFFSETS = [0, 96, 28, 168, 56, 12, 124];
+// 大小スケール: 決め打ち2〜3段階。長さ5は列数4と互いに素。
+// 【縮小のみ（<=1.0）】拡大(>1.0)はワイド画面でカード幅Wが伸びると 0.08W>gap や
+// 縦の拡大分>gap-y で重なり得るため不採用（docs/06「崩壊させない」を全幅で確実に満たす）。
+// transform: scale のため layout は不変。origin は上中央。
+const SCATTER_SCALES = [1.0, 0.9, 1.0, 0.94, 0.86];
 
 type StoreGridProps = {
   products: Product[];
@@ -47,15 +54,21 @@ export function StoreGrid({ products, imageUrls }: StoreGridProps) {
           const purchasable = isPurchasable(p);
           const left = remaining(p);
           const extras = SAMPLE_EXTRAS[p.slug];
-          // 決め打ちの縦オフセット（毎回ランダム禁止・再読込で安定）。
+          // 決め打ちの縦オフセット＋大小スケール（毎回ランダム禁止・再読込で安定）。
           // カードの通し index から固定パターンを引く。行が揃わないよう列周期(4)と
-          // 互いに素な長さ(7)の配列にして、列ごとに同じ段差が並ばないようにする。
+          // 互いに素な長さ(7/5)の配列にして、列ごとに同じ段差・同じ大小が並ばないようにする。
           const offset = SCATTER_OFFSETS[index % SCATTER_OFFSETS.length];
+          const scale = SCATTER_SCALES[index % SCATTER_SCALES.length];
           return (
             <article
               key={p.id}
               className="flex flex-col scatter-card"
-              style={{ "--scatter-offset": `${offset}px` } as React.CSSProperties}
+              style={
+                {
+                  "--scatter-offset": `${offset}px`,
+                  "--scatter-scale": scale,
+                } as React.CSSProperties
+              }
             >
               <PosterCard
                 title={p.title}
