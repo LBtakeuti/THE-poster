@@ -5,6 +5,7 @@
 // - 各カード: 上に回る3Dポスター（PosterCard）、下に 作品名 / sub・価格 / 残り N/M / Buy / 残量バー。
 // - 在庫0(=purchasable false): Buy 無効 + "Archived" + ポスター褪色（Poster 側で opacity 低下）。
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { PosterCanvas } from "@/components/poster/PosterCanvas";
 import { PosterCard } from "@/components/poster/PosterCard";
 import { useI18n } from "@/lib/i18n/context";
@@ -64,17 +65,23 @@ export function StoreGrid({ products, imageUrls }: StoreGridProps) {
                   <span className="whitespace-nowrap text-[11px] tabular-nums tracking-[0.04em] text-subtle">
                     {renderStock(t.stockLeft(left, p.edition_size), left)}
                   </span>
-                  <button
-                    type="button"
-                    disabled={!purchasable}
-                    className={
-                      purchasable
-                        ? "cursor-pointer whitespace-nowrap rounded-full border border-ink bg-ink px-[18px] py-2 text-[11px] font-medium tracking-[0.06em] text-white transition-transform hover:-translate-y-px"
-                        : "cursor-not-allowed whitespace-nowrap rounded-full border border-hair bg-transparent px-[18px] py-2 text-[10px] uppercase tracking-[0.12em] text-muted"
-                    }
-                  >
-                    {purchasable ? t.buy : t.archived}
-                  </button>
+                  {purchasable ? (
+                    // Buy → /checkout に商品 slug を引き継ぐ（数量は checkout 側で 1〜残数）。
+                    <Link
+                      href={`/checkout?slug=${encodeURIComponent(p.slug)}`}
+                      className="cursor-pointer whitespace-nowrap rounded-full border border-ink bg-ink px-[18px] py-2 text-[11px] font-medium tracking-[0.06em] text-white transition-transform hover:-translate-y-px"
+                    >
+                      {t.buy}
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="cursor-not-allowed whitespace-nowrap rounded-full border border-hair bg-transparent px-[18px] py-2 text-[10px] uppercase tracking-[0.12em] text-muted"
+                    >
+                      {t.archived}
+                    </button>
+                  )}
                 </div>
                 <div className="mt-[10px] h-[2px] w-full overflow-hidden rounded-sm bg-hair">
                   <i

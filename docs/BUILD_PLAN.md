@@ -48,9 +48,12 @@ Stripe(Payment Element+Webhook) / React Three Fiber + drei。
 - 以降の順序: Phase 4（管理画面）→ Phase 3（チェックアウト）→ Phase 5（デプロイ）。
 - 管理画面のUI/コードは Supabase 未接続でも実装・ビルド可能。ただし実ログイン・実CRUDの動作確認には Supabase 接続が必要（接続後に通しテスト）。
 
-### Phase 3 — チェックアウト
+### Phase 3 — チェックアウト（★今ここ：コード完成・キー投入待ち）
 - `/checkout`(2カラム)+Payment Element、`POST /api/create-payment-intent`、
 - `POST /api/stripe/webhook`(署名検証→commit_order_stock→失敗時refund)、`/checkout/complete`。
+- 方針：**APIキーを入れたら動く完成度**まで実装する。Stripe審査中のため実挙動テストはキー投入後。
+  キー未投入でも `npm run build` は通す。公開鍵が無い場合はPayment Elementを安全に無効表示にする。
+- ストアの「Buy」を /checkout に接続（商品・数量を引き継ぐ）。
 
 ### Phase 4 — 管理画面 `/admin/*`
 - Supabase Auth ログイン+is_admin保護、商品CRUD、画像アップロード、公開/アーカイブ、注文/売上。
