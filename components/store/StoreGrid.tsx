@@ -9,7 +9,7 @@ import Link from "next/link";
 import { PosterCanvas } from "@/components/poster/PosterCanvas";
 import { PosterCard } from "@/components/poster/PosterCard";
 import { useI18n } from "@/lib/i18n/context";
-import { money } from "@/lib/format";
+import { moneyLocalized } from "@/lib/format";
 import { isPurchasable, remaining, type Product } from "@/lib/products-shared";
 import { SAMPLE_EXTRAS } from "@/lib/sample-products";
 
@@ -84,7 +84,7 @@ export function StoreGrid({ products, imageUrls }: StoreGridProps) {
                   {p.title}
                 </div>
                 <div className="mt-[5px] text-[10px] uppercase tracking-[0.18em] text-muted">
-                  Riso · A2 · {money(p.price_cents, locale, p.currency)}
+                  Riso · A2 · {moneyLocalized(p.price_cents, p.currency, locale)}
                 </div>
                 <div className="mt-[11px] flex items-center justify-between gap-[10px]">
                   <span className="whitespace-nowrap text-[11px] tabular-nums tracking-[0.04em] text-subtle">
