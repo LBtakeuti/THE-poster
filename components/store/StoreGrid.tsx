@@ -13,6 +13,10 @@ import { money } from "@/lib/format";
 import { isPurchasable, remaining, type Product } from "@/lib/products-shared";
 import { SAMPLE_EXTRAS } from "@/lib/sample-products";
 
+// scattered（段違い）用の決め打ち縦オフセット(px)。デスクトップ限定で適用（docs/06）。
+// 長さ7は列数4と互いに素 → 列ごとに同じ段差が並ばず自然に散る。再読込しても安定。
+const SCATTER_OFFSETS = [0, 48, 18, 66, 30, 8, 54];
+
 type StoreGridProps = {
   products: Product[];
   // image_path から組み立てた公開URL（実画像）。未設定はサンプル絵柄で描画。
@@ -38,13 +42,21 @@ export function StoreGrid({ products, imageUrls }: StoreGridProps) {
   return (
     <>
       <PosterCanvas />
-      <div className="relative z-[1] grid grid-cols-2 gap-x-4 gap-y-[6px] px-[18px] pb-16 min-[821px]:grid-cols-4 min-[821px]:gap-x-[22px] min-[821px]:gap-y-2 min-[821px]:px-7 min-[821px]:pb-20">
-        {products.map((p) => {
+      <div className="relative z-[1] grid grid-cols-2 items-start gap-x-4 gap-y-[6px] px-[18px] pb-16 min-[821px]:grid-cols-4 min-[821px]:gap-x-[22px] min-[821px]:gap-y-6 min-[821px]:px-7 min-[821px]:pb-20">
+        {products.map((p, index) => {
           const purchasable = isPurchasable(p);
           const left = remaining(p);
           const extras = SAMPLE_EXTRAS[p.slug];
+          // 決め打ちの縦オフセット（毎回ランダム禁止・再読込で安定）。
+          // カードの通し index から固定パターンを引く。行が揃わないよう列周期(4)と
+          // 互いに素な長さ(7)の配列にして、列ごとに同じ段差が並ばないようにする。
+          const offset = SCATTER_OFFSETS[index % SCATTER_OFFSETS.length];
           return (
-            <article key={p.id} className="flex flex-col">
+            <article
+              key={p.id}
+              className="flex flex-col scatter-card"
+              style={{ "--scatter-offset": `${offset}px` } as React.CSSProperties}
+            >
               <PosterCard
                 title={p.title}
                 editionSize={p.edition_size}

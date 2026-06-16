@@ -23,6 +23,16 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* ストアの scattered（段違い）レイアウト（docs/06）。
+   デスクトップ（821px 以上）のみ各カードに決め打ちの縦オフセットを与える。
+   モバイル（820px 以下）は従来どおり整然 2 列のため一切オフセットしない。
+   並び順（DOM/sort_order/キーボード順）は崩さず、margin-top で見た目だけ散らす。 */
+@media (min-width: 821px) {
+  .scatter-card {
+    margin-top: var(--scatter-offset, 0px);
+  }
+}
+
 /* 動きを減らす設定を尊重（3D の自動回転・浮遊は Phase 2 で個別対応）。 */
 @media (prefers-reduced-motion: reduce) {
   *,
