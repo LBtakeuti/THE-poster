@@ -4,7 +4,7 @@
 // 2カラム（左フォーム / 右 sticky サマリー）。数量ステッパー（1〜残数）。
 // 公開鍵が無い場合は Payment Element を安全に無効表示にする（キー投入後に有効化）。
 // 秘密鍵はサーバー専用。ここでは NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY のみ使用。
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -204,7 +204,8 @@ function DisabledPaymentSection({ total }: { total: number }) {
   const { t, locale } = useI18n();
   return (
     <div className="flex flex-col">
-      <ContactAndShippingFields disabled />
+      {/* 連絡先・お届け先は鍵未設定でも入力可（支払いのみ無効）。 */}
+      <ContactAndShippingFields />
       <section className="mb-[30px]">
         <h3 className="mb-[14px] text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
           {t.payment}
@@ -245,9 +246,46 @@ function DisabledPaymentSection({ total }: { total: number }) {
 
 // ---- 連絡先 + お届け先（国なし。プロト L341-351） ----
 function ContactAndShippingFields({ disabled }: { disabled?: boolean }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // 郵便番号 → 住所 自動入力（日本のみ）。zipcloud の公開APIを利用。
+  // 都道府県・市区町村は上書き、住所(line1)は空のときだけ町域で補完（入力中の街区は消さない）。
+  async function handleZipChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (locale !== "ja") return;
+    const code = e.target.value.replace(/[^0-9]/g, "");
+    if (code.length !== 7) return;
+    try {
+      const res = await fetch(
+        `https://zipcloud.appsearch.io/api/search?zipcode=${code}`,
+      );
+      const json = (await res.json()) as {
+        results?: Array<{
+          address1?: string;
+          address2?: string;
+          address3?: string;
+        }> | null;
+      };
+      const r = json.results?.[0];
+      const root = rootRef.current;
+      if (!r || !root) return;
+      const setVal = (name: string, val: string | undefined, force: boolean) => {
+        if (!val) return;
+        const el = root.querySelector<HTMLInputElement>(
+          `input[name="${name}"]`,
+        );
+        if (el && (force || !el.value)) el.value = val;
+      };
+      setVal("state", r.address1, true); // 都道府県
+      setVal("city", r.address2, true); // 市区町村
+      setVal("addr", r.address3, false); // 町域（住所が空のときだけ）
+    } catch {
+      // 取得失敗時は何もしない（手入力にフォールバック）。
+    }
+  }
+
   return (
-    <>
+    <div ref={rootRef}>
       <section className="mb-[30px]">
         <h3 className="mb-[14px] text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
           {t.contact}
@@ -264,10 +302,16 @@ function ContactAndShippingFields({ disabled }: { disabled?: boolean }) {
         <div className="grid grid-cols-2 gap-3 min-[481px]:grid-cols-[1.4fr_1fr_1fr]">
           <FieldInput name="city" label={t.city} autoComplete="address-level2" disabled={disabled} />
           <FieldInput name="state" label={t.region} autoComplete="address-level1" disabled={disabled} />
-          <FieldInput name="zip" label={t.postalCode} autoComplete="postal-code" disabled={disabled} />
+          <FieldInput
+            name="zip"
+            label={t.postalCode}
+            autoComplete="postal-code"
+            disabled={disabled}
+            onChange={locale === "ja" ? handleZipChange : undefined}
+          />
         </div>
       </section>
-    </>
+    </div>
   );
 }
 
@@ -277,12 +321,14 @@ function FieldInput({
   type = "text",
   autoComplete,
   disabled,
+  onChange,
 }: {
   name: string;
   label: string;
   type?: string;
   autoComplete?: string;
   disabled?: boolean;
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
 }) {
   return (
     <label className="mb-3 block">
@@ -294,6 +340,7 @@ function FieldInput({
         type={type}
         autoComplete={autoComplete}
         disabled={disabled}
+        onChange={onChange}
         className="w-full rounded-[10px] border border-line bg-white px-[13px] py-3 text-sm text-ink outline-none transition focus:border-ink focus:shadow-[0_0_0_3px_rgba(23,21,19,.06)] disabled:opacity-60"
       />
     </label>
