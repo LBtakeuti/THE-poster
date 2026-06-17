@@ -3,6 +3,7 @@
 // 見た目・操作感の正は reference/poster-store-prototype.html（ロゴのみ公式SVG）。
 import { Header } from "@/components/store/Header";
 import { StoreGrid } from "@/components/store/StoreGrid";
+import { IntroOverlay } from "@/components/store/IntroOverlay";
 import { getStoreProducts, posterPublicUrl } from "@/lib/products";
 
 export default async function HomePage() {
@@ -16,6 +17,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen">
+      <IntroOverlay />
       <Header />
       <StoreGrid products={products} imageUrls={imageUrls} />
     </main>
