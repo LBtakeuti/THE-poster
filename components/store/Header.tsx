@@ -22,7 +22,7 @@ export function Header() {
         <button
           type="button"
           onClick={toggleLocale}
-          className="cursor-pointer rounded-full border border-hair px-3 py-[5px] text-[11px] tracking-[0.1em] text-muted transition-colors hover:border-ink hover:text-ink"
+          className="lang-button"
         >
           {t.langButton}
         </button>

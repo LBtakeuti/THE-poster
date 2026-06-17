@@ -10,7 +10,7 @@ export function PosterCanvas() {
     <Canvas
       // 背景は純白。pointer-events は無効化し、各カードの hit レイヤーで操作する。
       eventSource={typeof document !== "undefined" ? document.body : undefined}
-      className="!fixed inset-0 -z-0"
+      className="poster-canvas-fixed"
       style={{ pointerEvents: "none" }}
       gl={{ antialias: true, alpha: false }}
       dpr={[1, 2]}

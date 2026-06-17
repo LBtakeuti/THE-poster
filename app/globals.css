@@ -1,43 +1,142 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* 「素のHTML風」モード（ユーザー指定）。
+   Tailwind は読み込まない。各コンポーネントの className は基本無効で、
+   サイト全体（ストア / チェックアウト / 管理画面）がブラウザ既定に近い見た目になる。
+   ただし UX のため、最小限の「線だけのボックス」CSS だけを足す（装飾は足さない）。 */
 
-/* デザイントークン（docs/06）。Tailwind の theme と二重管理になるが、
-   素の CSS からも参照できるよう CSS 変数として定義しておく。 */
-:root {
-  --ink: #171513;
-  --paper: #ffffff;
-  --hair: #e8e5df;
-  --line: #dcd8d0;
-  --muted: #9a948c;
+/* ── 3Dポスターのキャンバス（全画面固定・本文の背面）。白は WebGL のクリア色。 ── */
+.poster-canvas-fixed {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
 }
 
-html,
-body {
-  background: var(--paper);
-  color: var(--ink);
+/* ── ストア一覧: 巨大化を防ぎ、カードを適度な大きさで横に並べる（余白の出すぎを抑える）。 ── */
+.store-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  padding: 16px;
+  align-items: flex-start;
+}
+.store-card {
+  width: 240px;
 }
 
-body {
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+/* ── 線だけのボックス: フォーム部品とボタン（素のHTML風のまま整える）。 ── */
+input,
+textarea,
+select {
+  border: 1px solid #171513;
+  padding: 4px 6px;
+  background: #fff;
+  font: inherit;
+}
+button {
+  border: 1px solid #171513;
+  padding: 6px 12px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+button:disabled {
+  color: #9a948c;
+  border-color: #dcd8d0;
+  cursor: not-allowed;
 }
 
-/* ストアの scattered（段違い）レイアウト（docs/06）。
-   デスクトップ（821px 以上）のみ各カードに決め打ちの縦オフセット＋大小スケールを与える。
-   モバイル（820px 以下）は従来どおり整然 2 列のため一切散らさない（オフセット/スケールなし）。
-   並び順（DOM/sort_order/キーボード順）は崩さず、見た目だけ散らす。 */
-@media (min-width: 821px) {
-  .scatter-card {
-    margin-top: var(--scatter-offset, 0px);
-    /* 大小の変化。transform はレイアウトを変えないため横はみ出し・カード重なりを起こさない。
-       origin を上中央にして列内での中心を保つ。 */
-    transform: scale(var(--scatter-scale, 1));
-    transform-origin: top center;
+/* Buy（リンクをボタン風の線ボックスに）。 */
+.buy-button {
+  display: inline-block;
+  border: 1px solid #171513;
+  padding: 6px 16px;
+  text-decoration: none;
+  color: #171513;
+  background: #fff;
+}
+.buy-button:hover {
+  background: #171513;
+  color: #fff;
+}
+
+/* ── 言語切替ボタンだけは「CSSを当てた」状態を残す（ユーザー指定）。 ── */
+.lang-button {
+  cursor: pointer;
+  border: 1px solid #dcd8d0;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #9a948c;
+  background: #fff;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.lang-button:hover {
+  border-color: #171513;
+  color: #171513;
+}
+
+/* ── 入場イントロ演出（VerticalCutReveal / IntroOverlay）。素モードでも動くよう
+      必要な最小CSSだけを定義する。 ── */
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: transparent; /* 背景はTOP（ストア）をそのまま見せる */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.08em;
+  padding: 6vw;
+  cursor: pointer;
+}
+.intro-overlay--leaving {
+  animation: intro-fade 0.6s ease forwards;
+}
+@keyframes intro-fade {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.intro-headline {
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(16px, 3vw, 30px); /* もっと小さく */
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  color: #0015ff; /* ブルー（サンプル準拠） */
+}
+/* 切り上がり演出: 文字をマスクで隠し、translateY で下から出す。 */
+.intro-reveal {
+  display: inline-flex;
+  flex-wrap: wrap;
+  white-space: pre-wrap;
+}
+.intro-mask {
+  display: inline-flex;
+  overflow: hidden;
+}
+.intro-char {
+  display: inline-block;
+  transform: translateY(110%);
+  animation-name: intro-rise;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.27, 1);
+  animation-fill-mode: both;
+}
+.intro-reverse .intro-char {
+  transform: translateY(-110%);
+}
+@keyframes intro-rise {
+  to {
+    transform: translateY(0);
   }
 }
 
-/* 動きを減らす設定を尊重（3D の自動回転・浮遊は Phase 2 で個別対応）。 */
+/* 動きを減らす設定を尊重（アクセシビリティ）。 */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
