@@ -29,7 +29,7 @@ create table public.products (
   description_ja text,
   description_en text,
   price_cents   integer not null check (price_cents >= 0),
-  currency      text not null default 'usd',
+  currency      text not null default 'jpy',
   edition_size  integer not null check (edition_size > 0),   -- the "max 20" cap
   sold_count    integer not null default 0 check (sold_count >= 0),
   image_path    text,                          -- object path inside the 'posters' storage bucket
@@ -72,7 +72,7 @@ create table public.orders (
   status                   text not null default 'pending'
                              check (status in ('pending','paid','fulfilled','canceled','refunded')),
   amount_total_cents       integer not null default 0,
-  currency                 text not null default 'usd',
+  currency                 text not null default 'jpy',
   locale                   text not null default 'en' check (locale in ('ja','en')),
   shipping_name            text,
   shipping_address1        text,

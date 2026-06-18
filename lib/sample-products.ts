@@ -52,7 +52,7 @@ function mk(
     description_ja: null,
     description_en: null,
     price_cents,
-    currency: "usd",
+    currency: "jpy",
     edition_size,
     sold_count,
     image_path: null,
