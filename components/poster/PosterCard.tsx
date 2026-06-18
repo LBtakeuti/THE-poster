@@ -21,10 +21,10 @@ export function PosterCard(props: PosterCardProps) {
   const ref = useRef<HTMLDivElement>(null!);
 
   return (
-    <div className="relative w-full" style={{ aspectRatio: "3 / 4" }}>
+    <div className="poster-box relative w-full" style={{ aspectRatio: "3 / 4" }}>
       <div
         ref={ref}
-        className="absolute inset-0 touch-none"
+        className="poster-hit absolute inset-0 touch-none"
         // hit レイヤー。ドラッグで回転（cursor は drei 側で grab/grabbing）。
         style={{ cursor: props.sold ? "default" : "grab" }}
       />

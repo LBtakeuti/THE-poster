@@ -9,7 +9,7 @@ export function Header() {
   const { t, toggleLocale } = useI18n();
 
   return (
-    <header className="relative z-10 flex items-center justify-end px-5 pb-[14px] pt-5 min-[821px]:px-8 min-[821px]:pb-[18px] min-[821px]:pt-[26px]">
+    <header className="store-header relative z-10 flex items-center justify-end px-5 pb-[14px] pt-5 min-[821px]:px-8 min-[821px]:pb-[18px] min-[821px]:pt-[26px]">
       <Link
         href="/"
         aria-label="THE POSTER"

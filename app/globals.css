@@ -7,8 +7,25 @@
 .poster-canvas-fixed {
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0; /* 本文(z-index:1)の背面・白はWebGLのクリア色。各カード矩形にポスターを描画 */
   pointer-events: none;
+}
+/* ヘッダーと一覧は canvas より前面（z-index:1）に置く。素モードでTailwindのz-indexが
+   効かないため明示する。これが無いと static な本文が positioned な canvas の背面に隠れる。 */
+.store-header,
+.store-grid {
+  position: relative;
+  z-index: 1;
+}
+/* 各カードのポスター枠（3:4）と当たり判定レイヤー。drei View はこの矩形を追う。 */
+.poster-box {
+  position: relative;
+  width: 100%;
+}
+.poster-hit {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
 }
 
 /* ── ストア一覧: 巨大化を防ぎ、カードを適度な大きさで横に並べる（余白の出すぎを抑える）。 ── */
@@ -18,6 +35,8 @@
   gap: 28px;
   padding: 16px;
   align-items: flex-start;
+  position: relative;
+  z-index: 1;
 }
 .store-card {
   width: 240px;
