@@ -15,6 +15,12 @@ export default async function HomePage() {
     imageUrls[p.id] = posterPublicUrl(p.image_path);
   }
 
+  // デモ: PDF を画像化した sample-poster.png を 1 枚目（morning-sun）に載せ、
+  // 実画像が 3D ポスターに正しく貼られることを確認する（Supabase 未接続時のみ）。
+  if ("sample-morning-sun" in imageUrls && !imageUrls["sample-morning-sun"]) {
+    imageUrls["sample-morning-sun"] = "/sample-poster.png";
+  }
+
   return (
     <main className="min-h-screen">
       <IntroOverlay />
