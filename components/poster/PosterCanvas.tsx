@@ -10,6 +10,8 @@ export function PosterCanvas() {
     <Canvas
       // 背景は純白。pointer-events は無効化し、各カードの hit レイヤーで操作する。
       eventSource={typeof document !== "undefined" ? document.body : undefined}
+      // R3F は wrapper に position:relative をインライン付与する。style/className 単体では
+      // 負けるため、.poster-canvas-fixed 側で !important を付けて全画面固定に勝たせる。
       className="poster-canvas-fixed"
       style={{ pointerEvents: "none" }}
       gl={{ antialias: true, alpha: false }}

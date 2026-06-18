@@ -4,10 +4,15 @@
    ただし UX のため、最小限の「線だけのボックス」CSS だけを足す（装飾は足さない）。 */
 
 /* ── 3Dポスターのキャンバス（全画面固定・本文の背面）。白は WebGL のクリア色。 ── */
+/* 3Dキャンバスを全画面固定（本文 z-index:1 の背面）。R3F が wrapper に
+   position:relative をインライン付与するため、!important で確実に上書きする
+   （Tailwind の !fixed と同等の挙動を素CSSで再現）。 */
 .poster-canvas-fixed {
-  position: fixed;
-  inset: 0;
-  z-index: 0; /* 本文(z-index:1)の背面・白はWebGLのクリア色。各カード矩形にポスターを描画 */
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 0 !important;
   pointer-events: none;
 }
 /* ヘッダーと一覧は canvas より前面（z-index:1）に置く。素モードでTailwindのz-indexが
@@ -21,11 +26,6 @@
 .poster-box {
   position: relative;
   width: 100%;
-}
-.poster-hit {
-  position: absolute;
-  inset: 0;
-  touch-action: none;
 }
 
 /* ── ストア一覧: 巨大化を防ぎ、カードを適度な大きさで横に並べる（余白の出すぎを抑える）。 ── */
