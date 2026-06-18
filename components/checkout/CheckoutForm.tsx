@@ -76,7 +76,7 @@ export function CheckoutForm({
             />
           </Elements>
         ) : (
-          <DisabledPaymentSection total={total} />
+          <DisabledPaymentSection total={total} currency={product.currency} />
         )}
       </div>
 
@@ -200,7 +200,13 @@ function PaymentSection({
 }
 
 // ---- 公開鍵が無い場合の無効表示（キー投入後に有効化） ----
-function DisabledPaymentSection({ total }: { total: number }) {
+function DisabledPaymentSection({
+  total,
+  currency,
+}: {
+  total: number;
+  currency: string;
+}) {
   const { t, locale } = useI18n();
   return (
     <div className="flex flex-col">
@@ -235,7 +241,7 @@ function DisabledPaymentSection({ total }: { total: number }) {
         disabled
         className="mt-2 cursor-not-allowed rounded-xl bg-ink px-4 py-[15px] text-sm font-semibold tracking-[0.04em] text-white opacity-45"
       >
-        {t.pay(money(total, locale))}
+        {t.pay(money(total, locale, currency))}
       </button>
       <div className="mt-[14px] text-center text-[10.5px] tracking-[0.06em] text-muted">
         {t.secured}
