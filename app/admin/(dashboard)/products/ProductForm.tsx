@@ -52,13 +52,13 @@ export function ProductForm({ product }: { product?: Product }) {
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="価格（ドル）" required>
+          <Field label="価格（円）" required>
             <input
               name="price"
               type="number"
-              step="0.01"
+              step="1"
               min="0"
-              defaultValue={product ? (product.price_cents / 100).toString() : ""}
+              defaultValue={product ? product.price_cents.toString() : ""}
               required
               className={inputCls}
             />

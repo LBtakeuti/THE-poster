@@ -22,7 +22,7 @@ const POSTERS_BUCKET = "posters";
 function parseProductForm(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const slugInput = String(formData.get("slug") ?? "").trim();
-  const priceDollars = String(formData.get("price") ?? "").trim();
+  const priceYen = String(formData.get("price") ?? "").trim();
   const editionSize = Number(formData.get("edition_size"));
   const descJa = String(formData.get("description_ja") ?? "").trim();
   const descEn = String(formData.get("description_en") ?? "").trim();
@@ -30,8 +30,8 @@ function parseProductForm(formData: FormData) {
   return {
     title,
     slug: slugInput ? slugify(slugInput) : slugify(title),
-    // 表示はドル等、保存は cents。小数2桁まで受けて整数 cents へ。
-    priceCents: Math.round(Number(priceDollars) * 100),
+    // 通貨は円(JPY)に統一。円はゼロ小数（最小単位＝円）なので ×100 しない。
+    priceCents: Math.round(Number(priceYen)),
     editionSize,
     descriptionJa: descJa || null,
     descriptionEn: descEn || null,
@@ -86,6 +86,7 @@ export async function createProductAction(
     description_ja: parsed.descriptionJa,
     description_en: parsed.descriptionEn,
     price_cents: parsed.priceCents,
+    currency: "jpy", // 通貨は円に統一
     edition_size: parsed.editionSize,
     image_path: upload.imagePath ?? null,
     status,
@@ -134,6 +135,7 @@ export async function updateProductAction(
     description_ja: parsed.descriptionJa,
     description_en: parsed.descriptionEn,
     price_cents: parsed.priceCents,
+    currency: "jpy", // 通貨は円に統一
     edition_size: parsed.editionSize,
   };
   // 画像は差し替え時のみ更新（未選択なら既存を維持）。
