@@ -105,7 +105,8 @@ export function Poster({
     }
     if (idleRotate && meshRef.current) {
       // 右回り（上から見て時計回り）。逆にしたい時は符号を + に変える。
-      meshRef.current.rotation.y -= delta * 0.45;
+      // 速さ: 約28秒で1周（ゆっくり）。数値を上げると速く・下げると遅く。
+      meshRef.current.rotation.y -= delta * 0.22;
     }
   });
 
