@@ -94,15 +94,20 @@ export function Poster({
 
   const meshRef = useRef<THREE.Mesh>(null);
 
-  // 売り切れは褪色。opacity をなめらかに目標へ寄せる。
-  useFrame(() => {
+  const idleRotate = !reducedMotion && !sold;
+
+  // 売り切れは褪色（opacity をなめらかに目標へ寄せる）。
+  // 通常は Y 軸まわりに「ゆっくり右回り」で自動回転（約14秒で1周）。
+  useFrame((_, delta) => {
     const target = sold ? 0.5 : 1.0;
     for (const m of materials) {
       m.opacity += (target - m.opacity) * 0.06;
     }
+    if (idleRotate && meshRef.current) {
+      // 右回り（上から見て時計回り）。逆にしたい時は符号を + に変える。
+      meshRef.current.rotation.y -= delta * 0.45;
+    }
   });
-
-  const idleRotate = !reducedMotion && !sold;
 
   return (
     <>
@@ -121,11 +126,17 @@ export function Poster({
       >
         <Float
           enabled={idleRotate}
-          speed={idleRotate ? 1.4 : 0}
-          rotationIntensity={idleRotate ? 0.15 : 0}
-          floatIntensity={idleRotate ? 0.5 : 0}
+          speed={idleRotate ? 1.2 : 0}
+          rotationIntensity={idleRotate ? 0.08 : 0}
+          floatIntensity={idleRotate ? 0.4 : 0}
         >
-          <mesh ref={meshRef} geometry={geometry} material={materials} />
+          {/* もっと大きく: メッシュを拡大して枠いっぱい近くまで見せる。 */}
+          <mesh
+            ref={meshRef}
+            geometry={geometry}
+            material={materials}
+            scale={1.7}
+          />
         </Float>
       </PresentationControls>
     </>
