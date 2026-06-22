@@ -4,11 +4,12 @@
 // - PC4列 / スマホ2列（max-width:820px で2列）。
 // - 各カード: 上に回る3Dポスター（PosterCard）、下に 作品名 / sub・価格 / 残り N/M / Buy / 残量バー。
 // - 在庫0(=purchasable false): Buy 無効 + "Archived" + ポスター褪色（Poster 側で opacity 低下）。
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PosterCanvas } from "@/components/poster/PosterCanvas";
 import { PosterCard } from "@/components/poster/PosterCard";
+import { usePrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
 import { useI18n } from "@/lib/i18n/context";
 import { money } from "@/lib/format";
 import { isPurchasable, remaining, type Product } from "@/lib/products-shared";
@@ -19,18 +20,6 @@ type StoreGridProps = {
   // image_path から組み立てた公開URL（実画像）。未設定はサンプル絵柄で描画。
   imageUrls: Record<string, string | null>;
 };
-
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    const onChange = () => setReduced(mq.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-  return reduced;
-}
 
 export function StoreGrid({ products, imageUrls }: StoreGridProps) {
   const { t, locale } = useI18n();

@@ -26,8 +26,16 @@ export function NoSave() {
       if (isFormField(e.target)) return;
       e.preventDefault();
     };
+    // 画像（と 3D の canvas）のドラッグ保存だけを抑止する。
+    // リンクやテキストなど通常のドラッグ操作は妨げない。
     const onDragStart = (e: DragEvent) => {
-      e.preventDefault();
+      const target = e.target;
+      if (
+        target instanceof HTMLImageElement ||
+        target instanceof HTMLCanvasElement
+      ) {
+        e.preventDefault();
+      }
     };
 
     document.addEventListener("contextmenu", onContextMenu);
