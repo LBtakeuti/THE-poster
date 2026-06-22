@@ -4,7 +4,7 @@
 // - 薄い boxGeometry（幅2 / 高さ2.828 / 奥行0.012）。正面=作品、裏面=白紙、側面=白。
 // - meshStandardMaterial（roughness 高め, metalness 0）で紙のマット感。紙は真っ白。
 // - PresentationControls でドラッグ回転 + スナップバック + 慣性、Float で微小に浮遊。
-// - 売り切れ(sold)は少し褪せさせ、浮遊・自動回転を止める。
+// - 売り切れ(sold)も他と同じ鮮やかさで浮遊・自動回転する（褪色しない）。
 // - prefers-reduced-motion を尊重。
 import { useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
@@ -42,7 +42,7 @@ function useCanvasTexture(make: () => HTMLCanvasElement) {
 export function Poster({
   title,
   editionSize,
-  sold,
+  // sold は型維持のため受け取れるが、現在は表示に影響しない（売り切れも回転・不透明）。
   reducedMotion,
   imageUrl,
   comp = "sun",
@@ -94,12 +94,12 @@ export function Poster({
 
   const meshRef = useRef<THREE.Mesh>(null);
 
-  const idleRotate = !reducedMotion && !sold;
+  const idleRotate = !reducedMotion;
 
-  // 売り切れは褪色（opacity をなめらかに目標へ寄せる）。
-  // 通常は Y 軸まわりに「ゆっくり右回り」で自動回転（約14秒で1周）。
+  // 売り切れも含め常に不透明（褪色しない）。
+  // Y 軸まわりに「ゆっくり右回り」で自動回転（約28秒で1周）。
   useFrame((_, delta) => {
-    const target = sold ? 0.5 : 1.0;
+    const target = 1.0;
     for (const m of materials) {
       m.opacity += (target - m.opacity) * 0.06;
     }

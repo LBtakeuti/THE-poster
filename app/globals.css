@@ -78,6 +78,20 @@ button:disabled {
   color: #fff;
 }
 
+/* SOLD OUT バッジ（購入ボタンの位置に出す控えめな表示）。 */
+.sold-badge {
+  display: inline-block;
+  white-space: nowrap;
+  border: 1px solid #dcd8d0;
+  border-radius: 999px;
+  background: #f4f2ee;
+  padding: 6px 18px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #9a948c;
+}
+
 /* ── 言語切替ボタンだけは「CSSを当てた」状態を残す（ユーザー指定）。 ── */
 .lang-button {
   cursor: pointer;

@@ -35,11 +35,16 @@ export function StoreGrid({ products, imageUrls }: StoreGridProps) {
   const { t, locale } = useI18n();
   const reducedMotion = usePrefersReducedMotion();
 
+  // 購入可能を先・売り切れを後ろへ（安定ソートで元の並び順は保つ）。
+  const ordered = [...products].sort(
+    (a, b) => Number(isPurchasable(b)) - Number(isPurchasable(a)),
+  );
+
   return (
     <>
       <PosterCanvas />
       <div className="store-grid">
-        {products.map((p) => {
+        {ordered.map((p) => {
           const purchasable = isPurchasable(p);
           const left = remaining(p);
           const extras = SAMPLE_EXTRAS[p.slug];
@@ -74,13 +79,7 @@ export function StoreGrid({ products, imageUrls }: StoreGridProps) {
                       {t.buy}
                     </Link>
                   ) : (
-                    <button
-                      type="button"
-                      disabled
-                      className="cursor-not-allowed whitespace-nowrap rounded-full border border-hair bg-transparent px-[18px] py-2 text-[10px] uppercase tracking-[0.12em] text-muted"
-                    >
-                      {t.archived}
-                    </button>
+                    <span className="sold-badge">SOLD OUT</span>
                   )}
                 </div>
                 <div className="mt-[10px] h-[2px] w-full overflow-hidden rounded-sm bg-hair">
