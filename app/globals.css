@@ -169,6 +169,93 @@ button:disabled {
   }
 }
 
+/* ── 画像保存の抑止（第一弾）。img/canvas に限定し、フォーム入力の選択は妨げない。 ── */
+img,
+canvas {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* ── ポスター詳細ページ /poster/[slug]。 ── */
+.poster-detail {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.poster-detail-back {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: #5d574f;
+  text-decoration: none;
+}
+.poster-detail-back:hover {
+  color: #171513;
+}
+.poster-detail-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  align-items: flex-start;
+}
+/* 3D ビューを大きく見せる枠（詳細は専用 Canvas を持つ）。 */
+.poster-detail-stage {
+  position: relative;
+  flex: 1 1 440px;
+  min-width: 300px;
+  aspect-ratio: 3 / 4;
+  max-height: 78vh;
+}
+.poster-detail-info {
+  flex: 1 1 280px;
+  min-width: 240px;
+}
+.poster-detail-zoom {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+}
+.poster-detail-zoom button {
+  width: 36px;
+  height: 36px;
+  line-height: 1;
+  font-size: 18px;
+  padding: 0;
+}
+.poster-detail-title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.poster-detail-sub {
+  margin-top: 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #9a948c;
+}
+.poster-detail-buyrow {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+/* 一覧カードの 3D ポスター領域をクリック可能にする（購入ボタンは別扱い）。 */
+.poster-card-link {
+  display: block;
+  cursor: pointer;
+}
+
 /* 動きを減らす設定を尊重（アクセシビリティ）。 */
 @media (prefers-reduced-motion: reduce) {
   *,

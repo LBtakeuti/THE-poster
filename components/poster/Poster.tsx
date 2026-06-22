@@ -6,11 +6,12 @@
 // - PresentationControls でドラッグ回転 + スナップバック + 慣性、Float で微小に浮遊。
 // - 売り切れ(sold)も他と同じ鮮やかさで浮遊・自動回転する（褪色しない）。
 // - prefers-reduced-motion を尊重。
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Float, PresentationControls } from "@react-three/drei";
 import * as THREE from "three";
 import { paintBack, paintFront } from "./paint";
+import { applyWatermark } from "@/lib/poster/watermark";
 import type { PosterComposition } from "@/lib/sample-products";
 
 const PW = 2.0;
@@ -50,21 +51,61 @@ export function Poster({
 }: PosterProps) {
   const { gl } = useThree();
 
-  const frontTex = useCanvasTexture(() =>
-    paintFront({ title, comp, accent, editionSize }),
-  );
+  // サンプル絵柄にも透かしを焼いてから CanvasTexture 化する。
+  const frontTex = useCanvasTexture(() => {
+    const base = paintFront({ title, comp, accent, editionSize });
+    return applyWatermark(base, base.width, base.height);
+  });
   const backTex = useCanvasTexture(paintBack);
 
   // 実画像があれば正面テクスチャを差し替える（Storage 公開 URL）。
+  // TextureLoader 直読みをやめ、Image でロード→canvasに透かしを焼く→CanvasTexture 化する。
+  // 第二弾でサーバー側の透かし焼き＆署名URLに置き換える想定。
   const realTex = useMemo(() => {
     if (!imageUrl) return null;
-    const loader = new THREE.TextureLoader();
-    loader.setCrossOrigin("anonymous");
-    const tex = loader.load(imageUrl);
+    // ロード完了まで空の canvas を持つテクスチャを返し、後で needsUpdate で差し替える。
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = gl.capabilities.getMaxAnisotropy();
     return tex;
   }, [imageUrl, gl]);
+
+  // 実画像のロード→透かし焼き。CORS 等で失敗したらサンプル絵柄にフォールバックする。
+  useEffect(() => {
+    if (!imageUrl || !realTex) return;
+    let cancelled = false;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      if (cancelled) return;
+      try {
+        const watermarked = applyWatermark(
+          img,
+          img.naturalWidth || img.width,
+          img.naturalHeight || img.height,
+        );
+        realTex.image = watermarked;
+        realTex.needsUpdate = true;
+      } catch {
+        // 透かし処理に失敗したらサンプル絵柄にフォールバック。
+        realTex.image = frontTex.image;
+        realTex.needsUpdate = true;
+      }
+    };
+    img.onerror = () => {
+      if (cancelled) return;
+      // CORS 等でロード失敗 → サンプル絵柄にフォールバック。
+      realTex.image = frontTex.image;
+      realTex.needsUpdate = true;
+    };
+    img.src = imageUrl;
+    return () => {
+      cancelled = true;
+    };
+  }, [imageUrl, realTex, frontTex]);
 
   const frontMap = realTex ?? frontTex;
 
