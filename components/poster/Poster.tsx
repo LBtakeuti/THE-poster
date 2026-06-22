@@ -30,6 +30,9 @@ type PosterProps = {
   // 詳細ページ向け: Float の振れ幅を控えめにする（上下にはみ出さないため）。
   // 一覧では未指定（false）で従来どおりの浮遊。
   calmFloat?: boolean;
+  // 詳細ページ向け: 内蔵の PresentationControls と idle 自動回転・Float を止め、
+  // 外側（OrbitControls）に回転を任せる。一覧では未指定（false）で従来どおり。
+  interactive?: boolean;
 };
 
 function useCanvasTexture(make: () => HTMLCanvasElement) {
@@ -59,6 +62,7 @@ export function Poster({
   comp = "sun",
   accent = "#d8442b",
   calmFloat = false,
+  interactive = false,
 }: PosterProps) {
   const { gl } = useThree();
 
@@ -154,7 +158,8 @@ export function Poster({
 
   const meshRef = useRef<THREE.Mesh>(null);
 
-  const idleRotate = !reducedMotion;
+  // interactive（詳細）では自動回転・Float を止め、OrbitControls に回転を任せる。
+  const idleRotate = !reducedMotion && !interactive;
 
   // 売り切れも含め常に不透明（褪色しない）。
   // Y 軸まわりに「ゆっくり右回り」で自動回転（約28秒で1周）。
@@ -176,30 +181,40 @@ export function Poster({
       <directionalLight position={[-2.4, 3.0, 3.2]} intensity={1.0} />
       <directionalLight position={[3, 1, 2]} intensity={0.25} />
 
-      <PresentationControls
-        global={false}
-        cursor
-        snap
-        speed={1.2}
-        damping={0.2}
-        polar={[-0.4, 0.4]}
-        azimuth={[-Math.PI, Math.PI]}
-      >
-        <Float
-          enabled={idleRotate}
-          speed={idleRotate ? 1.2 : 0}
-          rotationIntensity={idleRotate ? (calmFloat ? 0.04 : 0.08) : 0}
-          floatIntensity={idleRotate ? (calmFloat ? 0.12 : 0.4) : 0}
+      {interactive ? (
+        // 詳細ページ: 回転は外側の OrbitControls が担う。内蔵コントロール／Float は付けない。
+        <mesh
+          ref={meshRef}
+          geometry={geometry}
+          material={materials}
+          scale={1.7}
+        />
+      ) : (
+        <PresentationControls
+          global={false}
+          cursor
+          snap
+          speed={1.2}
+          damping={0.2}
+          polar={[-0.4, 0.4]}
+          azimuth={[-Math.PI, Math.PI]}
         >
-          {/* もっと大きく: メッシュを拡大して枠いっぱい近くまで見せる。 */}
-          <mesh
-            ref={meshRef}
-            geometry={geometry}
-            material={materials}
-            scale={1.7}
-          />
-        </Float>
-      </PresentationControls>
+          <Float
+            enabled={idleRotate}
+            speed={idleRotate ? 1.2 : 0}
+            rotationIntensity={idleRotate ? (calmFloat ? 0.04 : 0.08) : 0}
+            floatIntensity={idleRotate ? (calmFloat ? 0.12 : 0.4) : 0}
+          >
+            {/* もっと大きく: メッシュを拡大して枠いっぱい近くまで見せる。 */}
+            <mesh
+              ref={meshRef}
+              geometry={geometry}
+              material={materials}
+              scale={1.7}
+            />
+          </Float>
+        </PresentationControls>
+      )}
     </>
   );
 }
