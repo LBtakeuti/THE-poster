@@ -48,6 +48,16 @@ export async function getStoreProducts(): Promise<{
 }
 
 /**
+ * slug 一致の 1 件を返す（詳細ページ用）。
+ * getStoreProducts の結果から探すため、Supabase 接続時もサンプル時も動く。
+ * 見つからなければ null。
+ */
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  const { products } = await getStoreProducts();
+  return products.find((p) => p.slug === slug) ?? null;
+}
+
+/**
  * products.image_path（'posters' バケット内パス）から公開 URL を組み立てる。
  * image_path 未設定（サンプル等）は null を返し、呼び出し側でプレースホルダ描画する。
  */

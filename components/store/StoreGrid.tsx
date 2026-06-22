@@ -4,8 +4,9 @@
 // - PC4列 / スマホ2列（max-width:820px で2列）。
 // - 各カード: 上に回る3Dポスター（PosterCard）、下に 作品名 / sub・価格 / 残り N/M / Buy / 残量バー。
 // - 在庫0(=purchasable false): Buy 無効 + "Archived" + ポスター褪色（Poster 側で opacity 低下）。
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PosterCanvas } from "@/components/poster/PosterCanvas";
 import { PosterCard } from "@/components/poster/PosterCard";
 import { useI18n } from "@/lib/i18n/context";
@@ -50,15 +51,17 @@ export function StoreGrid({ products, imageUrls }: StoreGridProps) {
           const extras = SAMPLE_EXTRAS[p.slug];
           return (
             <article key={p.id} className="store-card">
-              <PosterCard
-                title={p.title}
-                editionSize={p.edition_size}
-                sold={!purchasable}
-                reducedMotion={reducedMotion}
-                imageUrl={imageUrls[p.id] ?? null}
-                comp={extras?.comp}
-                accent={extras?.accent}
-              />
+              <PosterCardLink slug={p.slug}>
+                <PosterCard
+                  title={p.title}
+                  editionSize={p.edition_size}
+                  sold={!purchasable}
+                  reducedMotion={reducedMotion}
+                  imageUrl={imageUrls[p.id] ?? null}
+                  comp={extras?.comp}
+                  accent={extras?.accent}
+                />
+              </PosterCardLink>
               <div className="px-1 pb-[14px] pt-[2px]">
                 <div className="text-sm font-semibold tracking-[0.02em]">
                   {p.title}
@@ -94,6 +97,43 @@ export function StoreGrid({ products, imageUrls }: StoreGridProps) {
         })}
       </div>
     </>
+  );
+}
+
+// 3D ポスター領域のクリック/タップで詳細 /poster/[slug] へ遷移する。
+// ドラッグ回転と競合しないよう、pointerdown→pointerup の移動量が小さい時だけクリック扱い。
+function PosterCardLink({
+  slug,
+  children,
+}: {
+  slug: string;
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const start = useRef<{ x: number; y: number } | null>(null);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    start.current = { x: e.clientX, y: e.clientY };
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    const s = start.current;
+    start.current = null;
+    if (!s) return;
+    // 移動量が小さければ「クリック」とみなして遷移（ドラッグ回転は遷移しない）。
+    const moved = Math.hypot(e.clientX - s.x, e.clientY - s.y);
+    if (moved < 6) {
+      router.push(`/poster/${encodeURIComponent(slug)}`);
+    }
+  };
+
+  return (
+    <div
+      className="poster-card-link"
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+    >
+      {children}
+    </div>
   );
 }
 
