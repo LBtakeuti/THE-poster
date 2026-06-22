@@ -213,6 +213,13 @@ canvas {
   aspect-ratio: 3 / 4;
   max-height: 78vh;
 }
+/* モバイル（狭幅）では縦が大きくなりすぎないよう抑え、画面内に収める。
+   カメラを十分引いているため、この枠内でポスター全体が余白付きで収まる。 */
+@media (max-width: 480px) {
+  .poster-detail-stage {
+    max-height: 68vh;
+  }
+}
 .poster-detail-info {
   flex: 1 1 280px;
   min-width: 240px;

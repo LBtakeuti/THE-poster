@@ -27,17 +27,27 @@ type PosterProps = {
   imageUrl?: string | null;
   comp?: PosterComposition;
   accent?: string;
+  // 詳細ページ向け: Float の振れ幅を控えめにする（上下にはみ出さないため）。
+  // 一覧では未指定（false）で従来どおりの浮遊。
+  calmFloat?: boolean;
 };
 
 function useCanvasTexture(make: () => HTMLCanvasElement) {
-  return useMemo(() => {
-    const tex = new THREE.CanvasTexture(make());
-    tex.colorSpace = THREE.SRGBColorSpace;
-    tex.anisotropy = 8;
-    return tex;
+  const tex = useMemo(() => {
+    const t = new THREE.CanvasTexture(make());
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
     // make は描画関数。マウント時に一度だけ生成する。
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // アンマウント時に GPU メモリを解放（メモリリーク防止）。
+  useEffect(() => {
+    return () => {
+      tex.dispose();
+    };
+  }, [tex]);
+  return tex;
 }
 
 export function Poster({
@@ -48,6 +58,7 @@ export function Poster({
   imageUrl,
   comp = "sun",
   accent = "#d8442b",
+  calmFloat = false,
 }: PosterProps) {
   const { gl } = useThree();
 
@@ -72,6 +83,14 @@ export function Poster({
     tex.anisotropy = gl.capabilities.getMaxAnisotropy();
     return tex;
   }, [imageUrl, gl]);
+
+  // realTex は imageUrl / gl 変更時とアンマウント時に破棄（GPU メモリ解放）。
+  useEffect(() => {
+    if (!realTex) return;
+    return () => {
+      realTex.dispose();
+    };
+  }, [realTex]);
 
   // 実画像のロード→透かし焼き。CORS 等で失敗したらサンプル絵柄にフォールバックする。
   useEffect(() => {
@@ -169,8 +188,8 @@ export function Poster({
         <Float
           enabled={idleRotate}
           speed={idleRotate ? 1.2 : 0}
-          rotationIntensity={idleRotate ? 0.08 : 0}
-          floatIntensity={idleRotate ? 0.4 : 0}
+          rotationIntensity={idleRotate ? (calmFloat ? 0.04 : 0.08) : 0}
+          floatIntensity={idleRotate ? (calmFloat ? 0.12 : 0.4) : 0}
         >
           {/* もっと大きく: メッシュを拡大して枠いっぱい近くまで見せる。 */}
           <mesh
