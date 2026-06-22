@@ -3,6 +3,7 @@ import { cookies, headers } from "next/headers";
 import { I18nProvider } from "@/lib/i18n/context";
 import { resolveLocaleFromAcceptLanguage } from "@/lib/i18n/locale";
 import type { Locale } from "@/lib/i18n/dictionary";
+import { NoSave } from "@/components/ui/NoSave";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default async function RootLayout({
   return (
     <html lang={initialLocale}>
       <body className="bg-paper text-ink font-sans antialiased">
+        <NoSave />
         <I18nProvider initialLocale={initialLocale}>{children}</I18nProvider>
       </body>
     </html>
