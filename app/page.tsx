@@ -4,6 +4,7 @@
 import { Header } from "@/components/store/Header";
 import { StoreGrid } from "@/components/store/StoreGrid";
 import { IntroOverlay } from "@/components/store/IntroOverlay";
+import { SiteMenu } from "@/components/store/SiteMenu";
 import { getStoreProducts, posterPublicUrl } from "@/lib/products";
 
 export default async function HomePage() {
@@ -23,6 +24,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen">
+      <SiteMenu />
       <IntroOverlay />
       <Header />
       <StoreGrid products={products} imageUrls={imageUrls} />
