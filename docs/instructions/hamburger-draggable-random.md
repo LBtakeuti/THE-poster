@@ -1,3 +1,29 @@
+# 作業指示書: 🍔メニューをランダム配置＋ドラッグ移動＋常時視認化
+
+## 目的
+1. 🍔（ハンバーガー）を読み込みのたびに**画面内のランダムな位置**に表示する。
+2. **ドラッグ／スワイプで自由に移動**できるようにする（マウス・タッチ両対応）。
+3. ドラッグせず**短くタップ／クリックした時だけメニューを開く**（移動量5px以下をクリック扱い）。
+4. 背景が濃くても見えるよう、🍔に**白い丸い下地＋薄い枠＋影**を付ける（現状「見えない」報告への対応）。
+
+## 前提（厳守）
+- 素モード（Tailwind不使用）。スタイルは globals.css の素CSS。
+- 開発サーバー PORT=3137 稼働中。`npm run build` 厳禁。検証は tsc / lint のみ。
+- ランダム位置は **クライアントのマウント後に決定**（SSRハイドレーション不一致を避けるため、初期stateはnull→useEffectで設定）。
+
+## 受け入れ条件
+1. 読み込むたびに🍔の初期位置が変わる（画面内に収まる）。
+2. 🍔をドラッグ/スワイプで動かせる（マウス＆タッチ）。画面外には出ない（余白12pxでクランプ）。
+3. ドラッグせず短くタップ/クリックすると INSTAGRAM メニューが開く。ドラッグ時は開かない。
+4. 🍔が白い下地で常に視認できる。
+5. tsc エラー0 / lint エラー0。既存ヘッダーに影響なし。
+
+---
+
+## 手順
+
+### 1. `components/store/SiteMenu.tsx` を下記の内容で**全置換**
+```tsx
 "use client";
 
 // 全画面ハンバーガーメニュー（中身は INSTAGRAM のみ）。
@@ -112,3 +138,44 @@ export function SiteMenu() {
     </>
   );
 }
+```
+
+### 2. `app/globals.css` の `.menu-toggle` ルールを下記で**置換**
+（現状は position:fixed / top:16 / right:16 / z-index:50 などのブロック。下記で差し替える。
+他の `.menu-toggle-bar` や `.menu-toggle[aria-expanded="true"]...` のルールはそのまま残す。）
+```css
+.menu-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px; /* マウント前の既定位置。JSが left/top をインライン指定して上書き */
+  z-index: 50;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 9px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #dcd8d0;
+  border-radius: 999px;
+  box-shadow: 0 1px 6px rgba(23, 21, 19, 0.14);
+  cursor: grab;
+  touch-action: none; /* タッチでのドラッグ中にページがスクロールしないように */
+  -webkit-user-select: none;
+  user-select: none;
+}
+.menu-toggle:active {
+  cursor: grabbing;
+}
+```
+
+### 3. 検証してコミット
+- `npx tsc --noEmit` エラー0、`npm run lint` エラー0（build禁止）。
+- コミットメッセージ例: `feat: 🍔メニューをランダム配置＋ドラッグ移動対応・常時視認化`
+- 変更ファイル: components/store/SiteMenu.tsx / app/globals.css / docs/instructions/hamburger-draggable-random.md
+
+## 報告に含めること
+- tsc / lint の結果
+- 受け入れ条件1〜5の達否
+- コミットハッシュ
