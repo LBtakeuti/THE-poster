@@ -13,7 +13,7 @@ export function SiteMenu() {
         type="button"
         className="menu-toggle"
         aria-label={open ? "Close menu" : "Open menu"}
-        aria-expanded={open}
+        aria-expanded={open ? "true" : "false"}
         onClick={() => setOpen((v) => !v)}
       >
         <span className="menu-toggle-bar" />
@@ -26,6 +26,7 @@ export function SiteMenu() {
           className="poster-menu"
           role="dialog"
           aria-modal="true"
+          aria-label="Site menu"
           onClick={() => setOpen(false)}
         >
           <nav className="poster-menu-inner" onClick={(e) => e.stopPropagation()}>
