@@ -294,12 +294,11 @@ canvas {
   width: 40px;
   height: 40px;
   padding: 0;
-  font-size: 22px;
+  font-size: 26px;
   line-height: 1;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #dcd8d0;
-  border-radius: 999px;
-  box-shadow: 0 1px 6px rgba(23, 21, 19, 0.14);
+  background: transparent; /* 共通 button 枠を打ち消し、🍔だけを見せる */
+  border: none;
+  box-shadow: none;
   cursor: grab;
   touch-action: none;
   -webkit-user-select: none;
