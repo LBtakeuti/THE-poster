@@ -84,9 +84,7 @@ export function SiteMenu() {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
       >
-        <span className="menu-toggle-bar" />
-        <span className="menu-toggle-bar" />
-        <span className="menu-toggle-bar" />
+        <span aria-hidden="true">🍔</span>
       </button>
 
       {open && (
