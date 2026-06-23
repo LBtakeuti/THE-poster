@@ -21,14 +21,20 @@ export function SiteMenu() {
     moved: boolean;
   } | null>(null);
 
-  // 初期位置をマウント後にランダム決定（SSR不一致回避）。
+  // 初期位置をマウント後に決定（SSR不一致回避）。
+  // スマホ(<=640px)は右下固定、PCはランダム。どちらもドラッグ移動は可。
   useEffect(() => {
     const maxX = Math.max(MARGIN, window.innerWidth - BTN - MARGIN);
     const maxY = Math.max(MARGIN, window.innerHeight - BTN - MARGIN);
-    setPos({
-      x: MARGIN + Math.random() * (maxX - MARGIN),
-      y: MARGIN + Math.random() * (maxY - MARGIN),
-    });
+    const isMobile = window.innerWidth <= 640;
+    if (isMobile) {
+      setPos({ x: maxX, y: maxY }); // 右下固定
+    } else {
+      setPos({
+        x: MARGIN + Math.random() * (maxX - MARGIN),
+        y: MARGIN + Math.random() * (maxY - MARGIN),
+      });
+    }
   }, []);
 
   const clamp = (x: number, y: number) => {
