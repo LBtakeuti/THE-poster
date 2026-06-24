@@ -22,6 +22,40 @@
   position: relative;
   z-index: 1;
 }
+
+/* ── ストアヘッダー: 素モードで Tailwind が効かないため、ロゴ寸法と配置を素CSSで明示。 ── */
+.store-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 16px 14px;
+  min-height: 44px;
+}
+.store-logo {
+  height: 26px;
+  width: auto;
+  display: block;
+}
+.store-header-actions {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+@media (min-width: 821px) {
+  .store-header {
+    padding: 26px 24px 18px;
+  }
+  .store-logo {
+    height: 40px;
+  }
+  .store-header-actions {
+    right: 24px;
+  }
+}
 /* 各カードのポスター枠（3:4）と当たり判定レイヤー。drei View はこの矩形を追う。 */
 .poster-box {
   position: relative;

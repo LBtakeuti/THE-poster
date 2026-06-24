@@ -16,9 +16,9 @@ export function Header() {
         className="absolute left-1/2 top-1/2 flex -translate-x-1/2 translate-y-[calc(-50%+8px)] items-center"
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- 軽量な単色SVGワードマーク（docs/06） */}
-        <img src="/logo.svg" alt="THE POSTER" className="h-[26px] w-auto min-[821px]:h-[40px]" />
+        <img src="/logo.svg" alt="THE POSTER" className="store-logo h-[26px] w-auto min-[821px]:h-[40px]" />
       </Link>
-      <div className="flex items-center gap-5">
+      <div className="store-header-actions flex items-center gap-5">
         <button
           type="button"
           onClick={toggleLocale}
