@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getStripe, isStripeWebhookConfigured } from "@/lib/stripe";
+import { notifyPaidOrder } from "@/lib/notify/order";
 
 export const runtime = "nodejs";
 
@@ -75,6 +76,12 @@ export async function POST(req: Request) {
     }
 
     // 成功（commit_order_stock 内で status=paid に更新済み）。
+    // 通知（購入者メール＋管理者LINE）。失敗しても webhook は 200 を返す（Stripe再送＝二重処理を防ぐ）。
+    try {
+      await notifyPaidOrder(db, orderId);
+    } catch (e) {
+      console.error("[notify] failed", e);
+    }
     return NextResponse.json({ received: true });
   }
 
