@@ -24,12 +24,18 @@
 - 「Create a new provider」→ 名前は会社名や「THE POSTER」など任意で作成。
   - ※プロバイダー＝アカウントのまとめ箱。後から変更可。
 
-### Step 3. Messaging API チャネルを作る（＝公式アカウントが1つできる）
-- 「Create a Messaging API channel」を選ぶ。
-- 入力例:
-  - Channel name（公式アカウント名）: `THE POSTER 注文通知`
-  - Category / Subcategory: それっぽいもの（後で変更可）
-  - 同意してCreate。
+### Step 3. Messaging API を使えるようにする（※2025以降の新方式）
+> 注意: LINE Developers コンソールから「Messaging APIチャネル」を直接作る方式は廃止された。
+> 先に**LINE公式アカウント**を作り、その後 Messaging API を有効化する。
+
+1. コンソールの案内にある緑ボタン「**LINE公式アカウントを作成する**」を押す（外部サイトへ移動）。
+2. 公式アカウント作成フォームを入力:
+   - アカウント名: `THE POSTER 注文通知`（後で変更可）
+   - メールアドレス / 業種 / 国=日本 などを入力して作成。
+3. 作成後、**LINE Official Account Manager** の管理画面に入る。
+4. 右上「**設定**」→ 左メニュー「**Messaging API**」→「**Messaging APIを利用する**」を有効化。
+   - 途中で「プロバイダー」を選ぶ/作る画面 → 名前は「THE POSTER」等でOK。
+5. 有効化すると、**LINE Developers コンソール側にチャネルが出現**する（以降の Step 4・5 で鍵を取得）。
 
 ### Step 4. 送信用の鍵（アクセストークン）を発行
 1. 作ったチャネルを開く → 上部タブ「**Messaging API**」。
